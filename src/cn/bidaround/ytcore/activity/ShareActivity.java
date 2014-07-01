@@ -1,7 +1,6 @@
 package cn.bidaround.ytcore.activity;
 
 import java.io.IOException;
-
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -21,16 +20,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 import cn.bidaround.point.ChannelId;
 import cn.bidaround.ytcore.ErrorInfo;
+import cn.bidaround.ytcore.YtCore;
 import cn.bidaround.ytcore.YtShareListener;
 import cn.bidaround.ytcore.data.KeyInfo;
 import cn.bidaround.ytcore.data.ShareData;
 import cn.bidaround.ytcore.data.YtPlatform;
+import cn.bidaround.ytcore.login.SinaNoKeyShare;
 import cn.bidaround.ytcore.social.QQOpenShare;
 import cn.bidaround.ytcore.social.RennShare;
 import cn.bidaround.ytcore.social.SinaShare;
 import cn.bidaround.ytcore.social.TencentWbShare;
 import cn.bidaround.ytcore.util.Util;
-
 import com.sina.weibo.sdk.api.share.BaseResponse;
 import com.sina.weibo.sdk.api.share.IWeiboHandler;
 import com.sina.weibo.sdk.api.share.IWeiboShareAPI;
@@ -38,62 +38,63 @@ import com.sina.weibo.sdk.api.share.WeiboShareSDK;
 import com.sina.weibo.sdk.constant.WBConstants;
 
 /**
- * 分享界面 
+ * 分享界面
+ * 
  * @author youtui
  * @since 14/6/11
  */
 public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.Response {
-	/**分享的平台*/
+	/** 分享的平台 */
 	private YtPlatform platform;
-	/**新浪微博分享操作类*/
+	/** 新浪微博分享操作类 */
 	private SinaShare sinaShare;
-	/**新浪微博分享接口*/
+	/** 新浪微博分享接口 */
 	private IWeiboShareAPI iWeiboShareAPI;
-	/**返回按钮id*/
-	private final int BACK_ID = 140901; 
-	/**分享按钮id*/
+	/** 返回按钮id */
+	private final int BACK_ID = 140901;
+	/** 分享按钮id */
 	private final int SHAREBT_ID = 140902;
-	/**人人分享成功*/
+	/** 人人分享成功 */
 	public static final int RENN_SHARE_SUCCESS = 0;
-	/**人人分享错误*/
+	/** 人人分享错误 */
 	public static final int RENN_SHARE_ERROR = 1;
-	/**人人分享网络错误*/
+	/** 人人分享网络错误 */
 	public static final int RENN_HTTP_ERROR = 2;
-	/**人人分享图片未找到*/
+	/** 人人分享图片未找到 */
 	public static final int RENN_PIC_NOTFOUND = 3;
-	/**待分享数据*/
+	/** 待分享数据 */
 	public static ShareData shareData;
-	/**分享监听*/
+	/** 分享监听 */
 	public static YtShareListener listener;
-	/**短链接*/
+	/** 短链接 */
 	private String shortUrl;
-	/**长连接*/
+	/** 长连接 */
 	private String realUrl;
-	/**处理人人分享回调*/
+	/** 处理人人分享回调 */
 	private Handler mHandler = new Handler() {
 		public void handleMessage(android.os.Message msg) {
 			switch (msg.what) {
-			//人人分享成功
+			// 人人分享成功
 			case RENN_SHARE_SUCCESS:
-				if(shareData!=null){
-					YtShareListener.sharePoint(ShareActivity.this, KeyInfo.youTui_AppKey,ChannelId.RENN, realUrl, !shareData.isAppShare, shortUrl);
-				}	
-				if(listener!= null){
+				if (shareData != null) {
+					YtShareListener.sharePoint(ShareActivity.this, KeyInfo.youTui_AppKey, ChannelId.RENN, realUrl, !shareData.isAppShare, shortUrl);
+				}
+				if (listener != null) {
 					ErrorInfo error = new ErrorInfo();
 					String errorMessage = (String) msg.obj;
 					error.setErrorMessage(errorMessage);
-					listener.onSuccess(error);	
-				}			
+					listener.onSuccess(error);
+				}
 				ShareActivity.this.finish();
 				break;
-			/** 处理人人分享错误*/
+			/** 处理人人分享错误 */
 			case RENN_SHARE_ERROR:
-				if(listener!=null){
+				if (listener != null) {
 					ErrorInfo error = new ErrorInfo();
 					String errorMessage = (String) msg.obj;
 					error.setErrorMessage(errorMessage);
 					listener.onError(error);
-				}			
+				}
 				ShareActivity.this.finish();
 				break;
 			/** 处理人人分享网络错误 */
@@ -117,6 +118,7 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 		super.onCreate(savedInstanceState);
 		doShare();
 	}
+
 	/**
 	 * 分享操作
 	 */
@@ -124,29 +126,34 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 		platform = (YtPlatform) getIntent().getExtras().get("platform");
 		shortUrl = getIntent().getExtras().getString("shortUrl");
 		realUrl = getIntent().getExtras().getString("realUrl");
+		boolean sinaWeiboIsNoKeyShare = getIntent().getExtras().getBoolean("sinaWeiboIsNoKeyShare");
 
 		switch (platform) {
-		//分享到新浪微博
+		// 分享到新浪微博
 		case PLATFORM_SINAWEIBO:
-			iWeiboShareAPI = WeiboShareSDK.createWeiboAPI(this, KeyInfo.sinaWeibo_AppKey);
-			sinaShare = new SinaShare(ShareActivity.this,shareData);
-			sinaShare.shareToSina();
+			if (sinaWeiboIsNoKeyShare) {
+				initView("新浪微博", platform);
+			} else {
+				iWeiboShareAPI = WeiboShareSDK.createWeiboAPI(this, KeyInfo.sinaWeibo_AppKey);
+				sinaShare = new SinaShare(ShareActivity.this, shareData);
+				sinaShare.shareToSina();
+			}
 			break;
-			//分享到qq
+		// 分享到qq
 		case PLATFORM_QQ:
-			new QQOpenShare(this, "QQ", listener,shareData).shareToQQ();
+			new QQOpenShare(this, "QQ", listener, shareData).shareToQQ();
 			break;
-			//分享到qq空间
+		// 分享到qq空间
 		case PLATFORM_QZONE:
-			new QQOpenShare(this, "Qzone", listener,shareData).shareToQzone();
+			new QQOpenShare(this, "Qzone", listener, shareData).shareToQzone();
 			break;
-			//分享到腾讯微博
+		// 分享到腾讯微博
 		case PLATFORM_TENCENTWEIBO:
-			initView("腾讯微博",platform);
+			initView("腾讯微博", platform);
 			break;
-			//分享到人人网
+		// 分享到人人网
 		case PLATFORM_RENN:
-			initView("人人网",platform);
+			initView("人人网", platform);
 			break;
 		default:
 			break;
@@ -172,36 +179,36 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 	@Override
 	public void onResponse(BaseResponse baseResp) {
 		switch (baseResp.errCode) {
-		//分享成功
+		// 分享成功
 		case WBConstants.ErrorCode.ERR_OK:
-			if(shareData!=null){
+			if (shareData != null) {
 				YtShareListener.sharePoint(this, KeyInfo.youTui_AppKey, ChannelId.SINAWEIBO, realUrl, !shareData.isAppShare, shortUrl);
 			}
-			if(listener!=null){
+			if (listener != null) {
 				ErrorInfo error = new ErrorInfo();
 				error.setErrorMessage(baseResp.errMsg);
 				listener.onSuccess(error);
-			}		
+			}
 			break;
-			//分享取消
+		// 分享取消
 		case WBConstants.ErrorCode.ERR_CANCEL:
-			if(listener!=null){
+			if (listener != null) {
 				listener.onCancel();
 			}
-			
+
 			break;
-			//分享错误
+		// 分享错误
 		case WBConstants.ErrorCode.ERR_FAIL:
 			// 新浪微博分享在这里有bug
 			if ("auth faild!!!!".equals(baseResp.errMsg)) {
 				Toast.makeText(this, "授权失败,请重新获取授权...", Toast.LENGTH_SHORT).show();
 				iWeiboShareAPI.registerApp();
 			} else {
-				if(listener!=null){
+				if (listener != null) {
 					ErrorInfo error = new ErrorInfo();
 					error.setErrorMessage(baseResp.errMsg);
 					listener.onError(error);
-				}	
+				}
 			}
 			break;
 
@@ -214,7 +221,7 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 	}
 
 	@Override
-	protected void onDestroy( ) {
+	protected void onDestroy() {
 		// activity摧毁时释放listener
 		Util.dismissDialog();
 		shareData = null;
@@ -223,7 +230,7 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 	}
 
 	/** 腾讯微博和人人需要自己写分享编辑界面 */
-	private void initView(String platformName,final YtPlatform platform) {
+	private void initView(String platformName, final YtPlatform platform) {
 		LinearLayout mainLinear = new LinearLayout(this);
 		mainLinear.setOrientation(LinearLayout.VERTICAL);
 		mainLinear.setBackgroundColor(0xffe9ecff);
@@ -232,8 +239,8 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 		RelativeLayout.LayoutParams headerLinearParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.FILL_PARENT, Util.dip2px(this, 50));
 		headerLayout.setLayoutParams(headerLinearParams);
 		headerLayout.setBackgroundColor(0xff66c0ff);
-		
-		//返回键
+
+		// 返回键
 		LinearLayout back = new LinearLayout(this);
 		RelativeLayout.LayoutParams backParams = new RelativeLayout.LayoutParams(Util.dip2px(this, 50), RelativeLayout.LayoutParams.FILL_PARENT);
 		backParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
@@ -249,7 +256,7 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 			}
 
 		});
-		//返回键图片
+		// 返回键图片
 		ImageView backImage = new ImageView(this);
 		LayoutParams backImageParams = new LayoutParams(Util.dip2px(this, 20), Util.dip2px(this, 20));
 		backImage.setLayoutParams(backImageParams);
@@ -262,7 +269,7 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 		}
 		backImage.setImageBitmap(backBitmap);
 		back.addView(backImage);
-		//标题栏
+		// 标题栏
 		TextView title = new TextView(this);
 		RelativeLayout.LayoutParams titleParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.FILL_PARENT, RelativeLayout.LayoutParams.FILL_PARENT);
 		titleParams.addRule(RelativeLayout.RIGHT_OF, BACK_ID);
@@ -271,8 +278,8 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 		title.setText(platformName);
 		title.setTextSize(16);
 		title.setTextColor(0xffffffff);
-		
-		//分享按钮
+
+		// 分享按钮
 		TextView shareBt = new TextView(this);
 		shareBt.setId(SHAREBT_ID);
 		RelativeLayout.LayoutParams shareBtParams = new RelativeLayout.LayoutParams(Util.dip2px(this, 50), RelativeLayout.LayoutParams.FILL_PARENT);
@@ -280,71 +287,71 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 		shareBt.setText("分享");
 		shareBt.setGravity(Gravity.CENTER_VERTICAL);
 		shareBt.setTextColor(0xffffffff);
-		
+
 		shareBt.setOnClickListener(new View.OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
-				if(platform == YtPlatform.PLATFORM_RENN){
+				if (platform == YtPlatform.PLATFORM_RENN) {
 					Util.showProgressDialog(ShareActivity.this, "分享中...", true);
-					new RennShare(ShareActivity.this, mHandler,listener,shareData).shareToRenn();
-				}else if(platform == YtPlatform.PLATFORM_TENCENTWEIBO){
+					new RennShare(ShareActivity.this, mHandler, listener, shareData).shareToRenn();
+				} else if (platform == YtPlatform.PLATFORM_TENCENTWEIBO) {
 					Util.showProgressDialog(ShareActivity.this, "分享中...", true);
-					new TencentWbShare(ShareActivity.this, listener,shareData).shareToTencentWb();
+					new TencentWbShare(ShareActivity.this, listener, shareData).shareToTencentWb();
+				} else if (platform == YtPlatform.PLATFORM_SINAWEIBO) {
+					// 没有key的情况下进行新浪微博分享
+					Util.showProgressDialog(ShareActivity.this, "分享中...", true);
+					SinaNoKeyShare.shareToSina(ShareActivity.this, shareData, listener, realUrl, shortUrl);
 				}
 			}
 		});
-		
+
 		headerLayout.addView(back, backParams);
 		headerLayout.addView(title, titleParams);
-		headerLayout.addView(shareBt,shareBtParams );
-		//分享内容框
+		headerLayout.addView(shareBt, shareBtParams);
+		// 分享内容框
 		LinearLayout bodyLayout = new LinearLayout(this);
 		bodyLayout.setOrientation(LinearLayout.VERTICAL);
 		LinearLayout.LayoutParams bodyParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, Util.dip2px(this, 270));
 		bodyLayout.setLayoutParams(bodyParams);
 		bodyLayout.setBackgroundColor(0xfff4f4f4);
-		//分享的文字
+		// 分享的文字
 		EditText editText = new EditText(this);
 		LinearLayout.LayoutParams editParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, Util.dip2px(this, 160));
 		editParams.setMargins(8, 8, 8, 8);
 		editText.setLayoutParams(editParams);
-		if(shareData!=null&&shareData.getText()!=null){
+		if (shareData != null && shareData.getText() != null) {
 			editText.setText(shareData.getText());
-		}	
+		}
 		editText.setGravity(Gravity.TOP);
 		editText.setTextColor(0xffa1a1a1);
 		editText.setTextSize(13);
 		editText.setBackgroundDrawable(null);
-		//分享的图片
+		// 分享的图片
 		ImageView shareImage = new ImageView(this);
 		LinearLayout.LayoutParams shareImageParams = new LinearLayout.LayoutParams(Util.dip2px(this, 100), Util.dip2px(this, 100));
 		shareImageParams.setMargins(8, 0, 8, 8);
 		shareImage.setLayoutParams(shareImageParams);
-		if(shareData!=null&&shareData.getImagePath()!=null){
+		if (shareData != null && shareData.getImagePath() != null) {
 			Bitmap imageBit = BitmapFactory.decodeFile(shareData.getImagePath());
 			BitmapDrawable bitDraw = new BitmapDrawable(imageBit);
 			shareImage.setBackgroundDrawable(bitDraw);
 		}
-		
+
 		bodyLayout.addView(editText);
 		bodyLayout.addView(shareImage);
-		
-		
-		mainLinear.addView(headerLayout,headerLinearParams);
-		mainLinear.addView(bodyLayout,bodyParams);
-		
+
+		mainLinear.addView(headerLayout, headerLinearParams);
+		mainLinear.addView(bodyLayout, bodyParams);
+
 		setContentView(mainLinear);
-		
 	}
-	
+
 	@Override
 	protected void onRestart() {
-		// TODO Auto-generated method stub
 		Util.dismissDialog();
 		finish();
 		super.onRestart();
 	}
-	
-	
+
 }

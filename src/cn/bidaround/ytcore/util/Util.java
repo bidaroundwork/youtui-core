@@ -44,7 +44,7 @@ public class Util {
 	 * @param act
 	 * @param message
 	 */
-	public void copyLink(Handler mHandler, final Context act, final String message) {
+	public static void copyLink(Handler mHandler, final Context act, final String message) {
 		mHandler.post(new Runnable() {
 			@SuppressWarnings("deprecation")
 			@SuppressLint("NewApi")

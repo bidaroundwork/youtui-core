@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -22,6 +23,7 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -42,6 +44,7 @@ import cn.bidaround.ytcore.data.YtPlatform;
 import cn.bidaround.ytcore.login.AuthListener;
 import cn.bidaround.ytcore.login.AuthLogin;
 import cn.bidaround.ytcore.login.AuthUserInfo;
+import cn.bidaround.ytcore.login.SinaNoKeyShare;
 import cn.bidaround.ytcore.social.OtherShare;
 import cn.bidaround.ytcore.util.AccessTokenKeeper;
 import cn.bidaround.ytcore.util.AppHelper;
@@ -66,8 +69,6 @@ public class YtCore {
 	public static Resources res;
 	/**应用AppContent*/
 	public static Context appContext;
-	/**标示,用于log输出*/
-	public static final String TAG = "at class YouTui:";
 	/**实例*/
 	public static YtCore yt;
 	/** 获取应用分享分享信息成功 */
@@ -149,9 +150,9 @@ public class YtCore {
 	}
 
 	/** 跳转到分享页面 */
-	private void doShare(Activity act, final YtPlatform platform, YtShareListener listener,ShareData shareData) {
-		String shortUrl = null;
-		String realUrl = shareData.getTarget_url();
+	private void doShare(Activity act, final YtPlatform platform, final YtShareListener listener,final ShareData shareData) {
+		String shortUrl = null ;
+		final String realUrl = shareData.getTarget_url();
 		if (!shareData.isAppShare && shareData.getTarget_url() != null && !shareData.getTarget_url().equals("")) {
 			shortUrl = CMyEncrypt.shortUrl(shareData.getTarget_url())[0];
 			sendUrl(KeyInfo.youTui_AppKey, platform.getChannleId(), shareData.getTarget_url(), !shareData.isAppShare, shortUrl);
@@ -180,14 +181,24 @@ public class YtCore {
 
 		} else if (platform == YtPlatform.PLATFORM_EMAIL) {
 			//分享到Email
-			new OtherShare(act).sendMail(shareData.getText());
+			if(shareData.getTarget_url()!=null){
+				new OtherShare(act).sendMail(shareData.getText()+shareData.getTarget_url());
+			}else{
+				new OtherShare(act).sendMail(shareData.getText());
+			}			
 		} else if (platform == YtPlatform.PLATFORM_MESSAGE) {
-			//分享到断信
-			new OtherShare(act).sendSMS(shareData.getText());
+			//分享到短信
+			if(shareData.getTarget_url()!=null){
+				new OtherShare(act).sendSMS(shareData.getText()+shareData.getTarget_url());
+			}else{
+				new OtherShare(act).sendSMS(shareData.getText());
+			}		
 		} else if (platform == YtPlatform.PLATFORM_MORE_SHARE) {
 			//更多分享
 			moreShare(shareData);
 		} else if (platform == YtPlatform.PLATFORM_TENCENTWEIBO) {
+			//finalShortUrl用于传递shortUrl
+			final String finalShortUrl = shortUrl;
 			//分享到腾讯微博
 			if (AccessTokenKeeper.isTencentWbAuthExpired(act)) {
 				//如果腾讯微博授权过期,先获取授权
@@ -197,6 +208,10 @@ public class YtCore {
 					public void onAuthSucess(Activity act, AuthUserInfo userInfo) {
 						Intent qqWBIt = new Intent(act, ShareActivity.class);
 						qqWBIt.putExtra("platform", platform);
+						ShareActivity.shareData = shareData;
+						WXEntryActivity.listener = listener;
+						qqWBIt.putExtra("shortUrl", finalShortUrl);
+						qqWBIt.putExtra("realUrl", realUrl);
 						act.startActivityForResult(qqWBIt, KeyInfo.tencentWeiboIndex);
 					}
 
@@ -239,18 +254,36 @@ public class YtCore {
 
 		} else if (platform == YtPlatform.PLATFORM_SINAWEIBO) {
 			//分享到新浪微博
-			if(AppHelper.isSinaWeiboExisted(act)){
-				Intent it = new Intent(act, ShareActivity.class);
-				ShareActivity.listener = listener;
-				it.putExtra("platform", platform);
-				it.putExtra("shortUrl", shortUrl);
-				it.putExtra("realUrl", realUrl);
-				ShareActivity.shareData = shareData;
-				act.startActivity(it);
+			
+			//如果选择了无key分享
+			if("true".equals(KeyInfo.getKeyValue(appContext, YtPlatform.PLATFORM_SINAWEIBO, "IsNoKeyShare"))){
+				if(AccessTokenKeeper.readAccessToken(appContext).isSessionValid()){
+					Intent it = new Intent(act, ShareActivity.class);
+					ShareActivity.listener = listener;
+					it.putExtra("platform", platform);
+					it.putExtra("sinaWeiboIsNoKeyShare", true);
+					it.putExtra("shortUrl", shortUrl);
+					it.putExtra("realUrl", realUrl);
+					ShareActivity.shareData = shareData;
+					act.startActivity(it);
+				}else{
+					new SinaNoKeyShare().sinaAuth(act,realUrl,shortUrl);
+					ShareActivity.shareData = shareData;
+					ShareActivity.listener = listener;
+				}
 			}else{
-				Toast.makeText(act, "未安装新浪微博。。。", Toast.LENGTH_SHORT).show();
+				if(AppHelper.isSinaWeiboExisted(act)){
+					Intent it = new Intent(act, ShareActivity.class);
+					ShareActivity.listener = listener;
+					it.putExtra("platform", platform);
+					it.putExtra("shortUrl", shortUrl);
+					it.putExtra("realUrl", realUrl);
+					ShareActivity.shareData = shareData;
+					act.startActivity(it);
+				}else{
+					Toast.makeText(act, "未安装新浪微博。。。", Toast.LENGTH_SHORT).show();
+				}
 			}
-
 		} else if (platform == YtPlatform.PLATFORM_RENN) {
 			//分享到人人网
 			if(AppHelper.isRenrenExisted(act)){
@@ -264,9 +297,13 @@ public class YtCore {
 			}else{
 				Toast.makeText(act, "未安装人人网。。。", Toast.LENGTH_SHORT).show();
 			}
-
+		}else if(platform == YtPlatform.PLATFORM_COPYLINK){
+			//复制链接 
+			if(shareData.getTarget_url()!=null){
+				
+				Util.copyLink(mHandler, act, shareData.getTarget_url());
+			}		
 		}
-
 	}
 
 	/** 获取分享信息 */
@@ -281,7 +318,7 @@ public class YtCore {
 				try {
 					DownloadImage.down_file(shareData.getImageUrl(), YoutuiConstants.FILE_SAVE_PATH, picPath);
 					shareData.setImagePath(Environment.getExternalStorageDirectory() + YoutuiConstants.FILE_SAVE_PATH + picPath);
-					YtLog.i(TAG + "网络图片保存到本地的路径", shareData.getImagePath());
+					YtLog.i("YtCore:" + "网络图片保存到本地的路径", shareData.getImagePath());
 
 				} catch (IOException e) {
 					mHandler.sendEmptyMessage(GET_CONTENTSHAREDATA_FAIL);
@@ -317,7 +354,7 @@ public class YtCore {
 			HttpResponse response = client.execute(post);
 			HttpEntity entity = response.getEntity();
 			String str = EntityUtils.toString(entity);
-			YtLog.i(TAG + "获取应用分享信息", str);
+			YtLog.i("YtCore:" + "获取应用分享信息", str);
 			JSONObject json = new JSONObject(str);
 
 			JSONObject object = json.getJSONObject("object");
@@ -334,13 +371,13 @@ public class YtCore {
 			// 是否有正在进行的活动
 			shareData.setIsInProgress(Boolean.parseBoolean(object.getString("hasProgressingPopAct")));
 
-			YtLog.i(TAG + "活动是否进行中", object.getString("hasProgressingPopAct"));
+			YtLog.i("YtCore:" + "活动是否进行中", object.getString("hasProgressingPopAct"));
 			// 下载Logo图片以便于后续分享
 			if (shareData.getImageUrl() != null) {
 				String picPath = shareData.getImageUrl().substring(shareData.getImageUrl().lastIndexOf("/") + 1,shareData.getImageUrl().length());
 				DownloadImage.down_file(shareData.getImageUrl(), YoutuiConstants.FILE_SAVE_PATH, picPath);
 				shareData.setImagePath(Environment.getExternalStorageDirectory() + YoutuiConstants.FILE_SAVE_PATH + picPath);
-				YtLog.i(TAG + "网络图片保存到本地的路径", shareData.getImagePath());
+				YtLog.i("YtCore:" + "网络图片保存到本地的路径", shareData.getImagePath());
 			}
 		} catch (UnsupportedEncodingException e) {
 			mHandler.sendEmptyMessage(GET_APPSHAREDATA_FAIL);
@@ -374,10 +411,10 @@ public class YtCore {
 		try {
 			KeyInfo.parseXML(context);
 		} catch (IOException e) {
-			YtLog.e(TAG, "解析youtui_sdk.xml错误,请正确填写");
+			YtLog.e("YtCore:", "解析youtui_sdk.xml错误,请正确填写");
 			e.printStackTrace();
 		} catch (XmlPullParserException e) {
-			YtLog.e(TAG, "解析youtui_sdk.xml错误,请正确填写");
+			YtLog.e("YtCore:", "解析youtui_sdk.xml错误,请正确填写");
 			e.printStackTrace();
 		}
 
@@ -447,7 +484,6 @@ public class YtCore {
 					try {
 						post.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
 						HttpResponse response = client.execute(post);
-
 					} catch (ClientProtocolException e) {
 						e.printStackTrace();
 					} catch (IOException e) {

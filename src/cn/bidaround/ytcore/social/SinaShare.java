@@ -12,12 +12,12 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.widget.Toast;
-
 import cn.bidaround.point.YoutuiConstants;
 import cn.bidaround.ytcore.YtCore;
 import cn.bidaround.ytcore.data.KeyInfo;
 import cn.bidaround.ytcore.data.ShareData;
 import cn.bidaround.ytcore.util.AccessTokenKeeper;
+
 import com.sina.weibo.sdk.api.ImageObject;
 import com.sina.weibo.sdk.api.TextObject;
 import com.sina.weibo.sdk.api.WeiboMessage;
@@ -49,10 +49,10 @@ public class SinaShare {
 	private SsoHandler mSsoHandler;
 	/**待分享数据*/
 	private ShareData shareData;
-
+	
 	public SinaShare(Activity activity,ShareData shareData) {
 		this.activity = activity;
-		iWeiboShareAPI = WeiboShareSDK.createWeiboAPI(activity, KeyInfo.sinaWeibo_AppKey);
+		iWeiboShareAPI = WeiboShareSDK.createWeiboAPI(activity,KeyInfo.sinaWeibo_AppKey );
 		this.shareData = shareData;
 	}
 
@@ -70,7 +70,7 @@ public class SinaShare {
 		}
 
 	}
-
+	
 	/**
 	 * 新浪微博sso授权
 	 */

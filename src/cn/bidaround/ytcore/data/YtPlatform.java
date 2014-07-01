@@ -7,7 +7,8 @@ import cn.bidaround.point.ChannelId;
  * @since 14/4/21
  */
 public enum YtPlatform {
-	PLATFORM_SINAWEIBO, PLATFORM_TENCENTWEIBO, PLATFORM_QZONE, PLATFORM_WECHAT, PLATFORM_RENN, PLATFORM_QQ, PLATFORM_MESSAGE, PLATFORM_EMAIL, PLATFORM_WECHATMOMENTS, PLATFORM_MORE_SHARE;
+	PLATFORM_SINAWEIBO, PLATFORM_TENCENTWEIBO, PLATFORM_QZONE, PLATFORM_WECHAT, PLATFORM_RENN, PLATFORM_QQ, PLATFORM_MESSAGE, PLATFORM_EMAIL, PLATFORM_WECHATMOMENTS, PLATFORM_MORE_SHARE,
+	PLATFORM_COPYLINK;
 
 	/** 通过平台ID获取平台名字，如果没有该ID则返回null */
 	public static String getPlatfornName(YtPlatform platform) {
@@ -32,7 +33,8 @@ public enum YtPlatform {
 			return "More";
 		case PLATFORM_WECHATMOMENTS:
 			return "WechatMoments";
-			
+		case PLATFORM_COPYLINK:
+			return "CopyLink";
 		default:
 			break;
 		}
@@ -64,7 +66,8 @@ public enum YtPlatform {
 			return ChannelId.MORE;
 		case PLATFORM_WECHATMOMENTS:
 			return ChannelId.WECHATFRIEND;
-
+		case PLATFORM_COPYLINK:
+			return ChannelId.COPYLINK;
 		default:
 			break;
 		}

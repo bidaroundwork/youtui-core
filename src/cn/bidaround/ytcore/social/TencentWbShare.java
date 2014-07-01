@@ -37,6 +37,7 @@ public class TencentWbShare {
 	public TencentWbShare(Activity act,YtShareListener listener,ShareData shareData) {
 		this.listener = listener;
 		this.act = act;
+		this.shareData = shareData;
 		shortUrl = act.getIntent().getExtras().getString("shortUrl");
 		realUrl = act.getIntent().getExtras().getString("realUrl");
 	}
