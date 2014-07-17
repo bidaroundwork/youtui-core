@@ -21,6 +21,7 @@ import com.tencent.mm.sdk.openapi.IWXAPI;
 import com.tencent.mm.sdk.openapi.IWXAPIEventHandler;
 import com.tencent.mm.sdk.openapi.SendMessageToWX;
 import com.tencent.mm.sdk.openapi.WXAPIFactory;
+import com.tencent.mm.sdk.openapi.WXImageObject;
 import com.tencent.mm.sdk.openapi.WXMediaMessage;
 import com.tencent.mm.sdk.openapi.WXWebpageObject;
 
@@ -77,26 +78,39 @@ public class WXEntryActivity extends YtBaseActivity implements IWXAPIEventHandle
 	 */
 	protected void shareToWx() {
 		if (shareData != null) {
-
 			WXMediaMessage msg = new WXMediaMessage();
-
-			if (shareData.getImagePath() != null) {
-				bitmap = BitmapFactory.decodeFile(shareData.getImagePath());
+			if(shareData.getShareType() == ShareData.SHARETYPE_IMAGEANDTEXT){
+				//如果是图文分享
+				if (shareData.getImagePath() != null) {
+					bitmap = BitmapFactory.decodeFile(shareData.getImagePath());
+				}
+				msg.title = shareData.getTitle();
+				msg.description = shareData.getText();
+				// bitmap为空时微信分享会没有响应，所以要设置一个默认图片让用户知道
+				if (bitmap != null) {
+					bmpThum = Bitmap.createScaledBitmap(bitmap, 150, 150, true);
+				} else {
+					bmpThum = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), YtCore.res.getIdentifier("yt_loadfail", "drawable", YtCore.packName)), 150, 150, true);
+				}
+				msg.setThumbImage(bmpThum);
+				WXWebpageObject pageObject = new WXWebpageObject();
+				pageObject.webpageUrl = shareData.getTarget_url();
+				msg.mediaObject = pageObject;		
+			}else if(shareData.getShareType() == ShareData.SHARETYPE_IMAGE){
+				//如果是纯图分享
+				if (shareData.getImagePath() != null) {
+					bitmap = BitmapFactory.decodeFile(shareData.getImagePath());
+				}
+				if (bitmap != null) {
+					bmpThum = Bitmap.createScaledBitmap(bitmap, 150, 150, true);
+				} else {
+					bmpThum = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), YtCore.res.getIdentifier("yt_loadfail", "drawable", YtCore.packName)), 150, 150, true);
+				}
+				msg.setThumbImage(bmpThum);
+				WXImageObject image = new WXImageObject();
+				image.imagePath = shareData.getImagePath();
+				msg.mediaObject = image;
 			}
-			msg.title = shareData.getTitle();
-
-			msg.description = shareData.getText();
-
-			// bitmap为空时微信分享会没有响应，所以要设置一个默认图片让用户知道
-			if (bitmap != null) {
-				bmpThum = Bitmap.createScaledBitmap(bitmap, 150, 150, true);
-			} else {
-				bmpThum = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), YtCore.res.getIdentifier("loadfail", "drawable", YtCore.packName)), 150, 150, true);
-			}
-			msg.setThumbImage(bmpThum);
-			WXWebpageObject pageObject = new WXWebpageObject();
-			pageObject.webpageUrl = shareData.getTarget_url();
-			msg.mediaObject = pageObject;
 			SendMessageToWX.Req req = new SendMessageToWX.Req();
 			req.transaction = buildTransaction("测试");
 			req.message = msg;
@@ -174,7 +188,9 @@ public class WXEntryActivity extends YtBaseActivity implements IWXAPIEventHandle
 					listener.onSuccess(error);
 				}
 			} else {
-				YtShareListener.sharePoint(this, KeyInfo.youTui_AppKey, ChannelId.WECHAT, realUrl, !shareData.isAppShare, shortUrl);
+				if(shareData!=null&&realUrl!=null&&shortUrl!=null){
+					YtShareListener.sharePoint(this, KeyInfo.youTui_AppKey, ChannelId.WECHAT, realUrl, !shareData.isAppShare, shortUrl);
+				}				
 				if(listener!= null){
 					ErrorInfo error = new ErrorInfo();
 					String errorMessage = response.errStr;

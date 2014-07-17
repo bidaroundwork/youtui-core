@@ -69,18 +69,21 @@ public class RennShare {
 	 * 分享到人人,分享文字过多时进行剪裁
 	 */
 	private void doShare() {
-		String text = shareData.getText();
+		String text = "";
 
 
-		
-		if(text.length()>110){
-			text = text.substring(0, 109);
-			text += "...";
+		if(shareData!=null&&shareData.getShareType()==ShareData.SHARETYPE_IMAGEANDTEXT){
+			text = shareData.getText();
+			if(text.length()>110){
+				text = text.substring(0, 109);
+				text += "...";
+			}
+			
+			text += shareData.getTarget_url();
+		}else if(shareData!=null&&shareData.getShareType()==ShareData.SHARETYPE_IMAGE){
+			text += "分享图片";
 		}
-		
-		text += shareData.getTarget_url();
 		doRennShare(text, client);
-
 	}
 	/**
 	 * 分享到人人操作

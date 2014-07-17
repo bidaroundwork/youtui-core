@@ -3,8 +3,10 @@ package cn.bidaround.ytcore.social;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+
 /**
  * 该类实现邮件和短信分享
+ * 
  * @author youtui
  * @since 14/6/19
  */
@@ -14,8 +16,10 @@ public class OtherShare {
 	public OtherShare(Activity act) {
 		this.act = act;
 	}
+
 	/**
 	 * 分享到短信
+	 * 
 	 * @param sms_body
 	 */
 	public void sendSMS(String sms_body) {
@@ -28,14 +32,14 @@ public class OtherShare {
 
 	/**
 	 * 分享到Email
+	 * 
 	 * @param emailBody
 	 */
 	public void sendMail(String emailBody) {
 		Intent email = new Intent(android.content.Intent.ACTION_SEND);
-		email.setType("plain/text");
+		 email.setType("plain/text");
+		//email.setType("image/png");
 		String emailSubject = "共享软件";
-		// 设置邮件默认地址
-		// email.putExtra(android.content.Intent.EXTRA_EMAIL, emailReciver);
 		// 设置邮件默认标题
 		email.putExtra(android.content.Intent.EXTRA_SUBJECT, emailSubject);
 		// 设置要默认发送的内容

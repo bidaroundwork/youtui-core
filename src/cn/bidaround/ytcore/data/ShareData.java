@@ -8,14 +8,14 @@ package cn.bidaround.ytcore.data;
  * @since 14/6/19
  */
 
-public class ShareData  {
-
+public class ShareData {
+	
 	//public static ShareData shareData;
 	/**如果为app分享设置为true，如果为content分享则设置为false
 	 * app分享的内容由开发者预先保留在友推服务器上
 	 * content分享的内容由开发者给ShareData实例的各个字段赋值
 	 **/
-	public boolean isAppShare = true;
+	public boolean isAppShare = false;
 	/**分享的文字*/
 	private String text = "加载分享内容失败,请查看网络连接情况...";
 	/**分享的图片的本地路径*/
@@ -30,6 +30,11 @@ public class ShareData  {
 	private String target_url;
 	/**是否有活动正在进行*/
 	private boolean isInProgress = false;
+	/**图文分享，该分享类型为默认分享类型，如果开发者未设置，则使用默认分享类型*/
+	public static final int SHARETYPE_IMAGEANDTEXT = 0;
+	public static final int SHARETYPE_IMAGE = 1;
+	/**用来判断分享的类型*/
+	private int shareType = SHARETYPE_IMAGEANDTEXT;
 	
 	public void setIsInProgress(boolean isInProgress){
 		this.isInProgress = isInProgress;
@@ -45,7 +50,6 @@ public class ShareData  {
 	public String getTarget_url() {
 		return target_url;
 	}
-
 	/**
 	 * 网页链接地址
 	 */
@@ -107,5 +111,14 @@ public class ShareData  {
 	public void setImageUrl(String imageUrl) {
 		this.imageUrl = imageUrl;
 	}
+	/**获取分享的类型*/
+	public int getShareType() {
+		return shareType;
+	}
+	/**设置分享的类型*/
+	public void setShareType(int shareType) {
+		this.shareType = shareType;
+	}
+
 
 }

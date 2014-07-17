@@ -29,8 +29,6 @@ public class TencentWbShare {
 	private String realUrl;
 	/**分享监听*/
 	private YtShareListener listener;
-	/**标示,用于Log输出*/
-	private final String TAG = "at class TencentWbShare";
 	/**待分享数据*/
 	private ShareData shareData;
 
@@ -50,12 +48,16 @@ public class TencentWbShare {
 		Bitmap bm = BitmapFactory.decodeFile(shareData.getImagePath());
 		String text = shareData.getText();
 		// 如果腾讯微博分享文字过长，截取前面内容和跳转url
-		if(text.length()>110){
-			text = text.substring(0, 109);
-			text+="...";
+		if(shareData.getShareType()==ShareData.SHARETYPE_IMAGEANDTEXT){
+			if(text.length()>110){
+				text = text.substring(0, 109);
+				text+="...";
+			}
+			text = text + shareData.getTarget_url();
+		}else if(shareData.getShareType()==ShareData.SHARETYPE_IMAGE){
+			text = "分享图片";
 		}
-		text = text + shareData.getTarget_url();
-		
+	
 		if(bm==null){
 			Toast.makeText(act, "加载分享图片失败,请重新设置分享图片...", Toast.LENGTH_SHORT).show();
 			Util.dismissDialog();

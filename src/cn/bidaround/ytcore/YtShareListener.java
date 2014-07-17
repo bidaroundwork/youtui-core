@@ -3,7 +3,7 @@ package cn.bidaround.ytcore;
 import android.content.Context;
 import cn.bidaround.point.YtPoint;
 /** 
- * 分享事件监听
+ * 分享事件监听，只对微信，新浪微博，qq，腾讯微博，人人等社交平台有效
  * @author youtui
  * @since 14/6/11
  */

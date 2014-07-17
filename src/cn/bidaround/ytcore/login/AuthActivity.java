@@ -37,6 +37,9 @@ import cn.bidaround.ytcore.YtBaseActivity;
 import cn.bidaround.ytcore.data.KeyInfo;
 import cn.bidaround.ytcore.util.AccessTokenKeeper;
 import cn.bidaround.ytcore.util.AppHelper;
+
+import com.sina.weibo.sdk.api.share.IWeiboShareAPI;
+import com.sina.weibo.sdk.api.share.WeiboShareSDK;
 import com.sina.weibo.sdk.auth.Oauth2AccessToken;
 import com.sina.weibo.sdk.auth.WeiboAuth;
 import com.sina.weibo.sdk.auth.WeiboAuthListener;
@@ -576,7 +579,8 @@ public final class AuthActivity extends YtBaseActivity {
 	}
 
 	/**
-	 * @author gaopan 新浪微博授权监听
+	 * 新浪微博授权监听
+	 * @author youtui 
 	 */
 	class SinaAuthListener implements WeiboAuthListener {
 		@Override
@@ -595,7 +599,6 @@ public final class AuthActivity extends YtBaseActivity {
 			if (oauth2AccessToken.isSessionValid()) {
 				AccessTokenKeeper.writeAccessToken(AuthActivity.this, oauth2AccessToken);
 			}
-
 			/** 获取新浪微博用户信息 */
 			new Thread() {
 				public void run() {

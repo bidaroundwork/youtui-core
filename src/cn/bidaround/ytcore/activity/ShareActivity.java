@@ -1,6 +1,7 @@
 package cn.bidaround.ytcore.activity;
 
 import java.io.IOException;
+
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -20,7 +21,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import cn.bidaround.point.ChannelId;
 import cn.bidaround.ytcore.ErrorInfo;
-import cn.bidaround.ytcore.YtCore;
 import cn.bidaround.ytcore.YtShareListener;
 import cn.bidaround.ytcore.data.KeyInfo;
 import cn.bidaround.ytcore.data.ShareData;
@@ -31,6 +31,7 @@ import cn.bidaround.ytcore.social.RennShare;
 import cn.bidaround.ytcore.social.SinaShare;
 import cn.bidaround.ytcore.social.TencentWbShare;
 import cn.bidaround.ytcore.util.Util;
+
 import com.sina.weibo.sdk.api.share.BaseResponse;
 import com.sina.weibo.sdk.api.share.IWeiboHandler;
 import com.sina.weibo.sdk.api.share.IWeiboShareAPI;
@@ -70,6 +71,7 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 	private String shortUrl;
 	/** 长连接 */
 	private String realUrl;
+	private EditText editText;
 	/** 处理人人分享回调 */
 	private Handler mHandler = new Handler() {
 		public void handleMessage(android.os.Message msg) {
@@ -127,11 +129,11 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 		shortUrl = getIntent().getExtras().getString("shortUrl");
 		realUrl = getIntent().getExtras().getString("realUrl");
 		boolean sinaWeiboIsNoKeyShare = getIntent().getExtras().getBoolean("sinaWeiboIsNoKeyShare");
-
+		boolean noClient = getIntent().getExtras().getBoolean("noClient");
 		switch (platform) {
 		// 分享到新浪微博
 		case PLATFORM_SINAWEIBO:
-			if (sinaWeiboIsNoKeyShare) {
+			if (sinaWeiboIsNoKeyShare||noClient) {
 				initView("新浪微博", platform);
 			} else {
 				iWeiboShareAPI = WeiboShareSDK.createWeiboAPI(this, KeyInfo.sinaWeibo_AppKey);
@@ -199,7 +201,6 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 			break;
 		// 分享错误
 		case WBConstants.ErrorCode.ERR_FAIL:
-			// 新浪微博分享在这里有bug
 			if ("auth faild!!!!".equals(baseResp.errMsg)) {
 				Toast.makeText(this, "授权失败,请重新获取授权...", Toast.LENGTH_SHORT).show();
 				iWeiboShareAPI.registerApp();
@@ -294,12 +295,19 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 			public void onClick(View v) {
 				if (platform == YtPlatform.PLATFORM_RENN) {
 					Util.showProgressDialog(ShareActivity.this, "分享中...", true);
+					String text = editText.getText().toString();
+					shareData.setText(text);
 					new RennShare(ShareActivity.this, mHandler, listener, shareData).shareToRenn();
+					
 				} else if (platform == YtPlatform.PLATFORM_TENCENTWEIBO) {
 					Util.showProgressDialog(ShareActivity.this, "分享中...", true);
+					String text = editText.getText().toString();
+					shareData.setText(text);
 					new TencentWbShare(ShareActivity.this, listener, shareData).shareToTencentWb();
 				} else if (platform == YtPlatform.PLATFORM_SINAWEIBO) {
 					// 没有key的情况下进行新浪微博分享
+					String text = editText.getText().toString();
+					shareData.setText(text);
 					Util.showProgressDialog(ShareActivity.this, "分享中...", true);
 					SinaNoKeyShare.shareToSina(ShareActivity.this, shareData, listener, realUrl, shortUrl);
 				}
@@ -316,7 +324,7 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 		bodyLayout.setLayoutParams(bodyParams);
 		bodyLayout.setBackgroundColor(0xfff4f4f4);
 		// 分享的文字
-		EditText editText = new EditText(this);
+		editText = new EditText(this);
 		LinearLayout.LayoutParams editParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, Util.dip2px(this, 160));
 		editParams.setMargins(8, 8, 8, 8);
 		editText.setLayoutParams(editParams);

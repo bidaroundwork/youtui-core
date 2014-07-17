@@ -3,11 +3,11 @@ package cn.bidaround.ytcore.data;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-import cn.bidaround.point.YtLog;
 import android.content.Context;
 
 /**
@@ -73,29 +73,9 @@ public class KeyInfo {
 	public static String more_Enable;
 	/**复制链接*/
 	public static String copyLink;
-	/** 微信在分享列表中的位置 */
-	public static int weChatIndex;
-	/** 朋友圈在分享列表中的位置 */
-	public static int wechatMomentsIndex;
-	/** 新浪微博在分享列表中的位置 */
-	public static int sinaWeiboIndex;
-	/** qq在分享列表中的位置 */
-	public static int qQIndex;
-	/** qq空间在分享列表中的位置 */
-	public static int qZoneIndex;
-	/** 腾讯微博在分享列表中的位置 */
-	public static int tencentWeiboIndex;
-	/** 人人网在分享列表中的位置 */
-	public static int renrenIndex;
-	/** 短信在分享列表中的位置 */
-	public static int shortMessageIndex;
-	/** 邮件在分享列表中的位置 */
-	public static int emailIndex;
-	/** 更多分享分享列表中的位置 */
-	public static int moreIndex;
-	/**复制链接在分享列表中的位置*/
-	public static int copyLinkIndex;
-	/** 用于添加需要分享的平台 */
+	
+	public static String screenCap_Enable;
+
 	public static ArrayList<String> enList = new ArrayList<String>();
 
 	/**
@@ -204,6 +184,11 @@ public class KeyInfo {
 					if (parser.getAttributeValue(null, "Enable")!=null&&parser.getAttributeValue(null, "Enable").contains("true")) {
 						enList.add(YtPlatform.getPlatfornName(YtPlatform.PLATFORM_COPYLINK));
 					}
+				}else if(YtPlatform.getPlatfornName(YtPlatform.PLATFORM_SCREENCAP).equals(tag)){
+					//截屏Enable
+					if (parser.getAttributeValue(null, "Enable")!=null&&parser.getAttributeValue(null, "Enable").contains("true")) {
+						enList.add(YtPlatform.getPlatfornName(YtPlatform.PLATFORM_SCREENCAP));
+					}
 				}
 				break;
 			case XmlPullParser.END_TAG:
@@ -213,46 +198,7 @@ public class KeyInfo {
 			}
 			eventType = parser.next();
 		}
-		setIndex();
-	}
-
-	/**
-	 * 设置各个社交平台在enList中的位置
-	 */
-	private static void setIndex() {
-		weChatIndex = enList.indexOf(YtPlatform.getPlatfornName(YtPlatform.PLATFORM_WECHAT));
-		if ("true".equals(wechat_Enable) && ("".equals(wechat_AppId) || null == wechat_AppId)) {
-			YtLog.e("微信配置错误", "微信平台被激活但是微信信息未配置,请在youtui_sdk.xml中配置微信信息");
-		}
-
-		wechatMomentsIndex = enList.indexOf(YtPlatform.getPlatfornName(YtPlatform.PLATFORM_WECHATMOMENTS));
-		if ("true".equals(WechatMoments_Enable) && ("".equals(wechatMoments_AppId) || null == wechatMoments_AppId)) {
-			YtLog.e("微信朋友圈配置错误", "微信朋友圈被激活,但是微信朋友圈信息未配置,请在youtui_sdk.xml中配置微信朋友圈信息.");
-		}
-
-		sinaWeiboIndex = enList.indexOf(YtPlatform.getPlatfornName(YtPlatform.PLATFORM_SINAWEIBO));
-		
-		qQIndex = enList.indexOf(YtPlatform.getPlatfornName(YtPlatform.PLATFORM_QQ));
-		if ("true".equals(qQ_Enable) && ("".equals(qQ_AppId) || null == qQ_AppId || "".equals(qQ_AppKey) || null == qQ_AppKey)) {
-			YtLog.e("qq配置错误", "qq被激活但是微信朋友圈信息未配,请在youtui_sdk.xml中配置qq信息.");
-		}
-
-		qZoneIndex = enList.indexOf(YtPlatform.getPlatfornName(YtPlatform.PLATFORM_QZONE));
-		if ("true".equals(qZone_Enable) && ("".equals(qZone_AppId) || null == qZone_AppId || "".equals(qZone_AppKey) || null == qZone_AppKey)) {
-			YtLog.e("qq空间配置错误", "qq空间被激活但是微信朋友圈信息未配置,请在youtui_sdk.xml中配置qq空间信息.");
-		}
-		tencentWeiboIndex = enList.indexOf(YtPlatform.getPlatfornName(YtPlatform.PLATFORM_TENCENTWEIBO));
-		renrenIndex = enList.indexOf(YtPlatform.getPlatfornName(YtPlatform.PLATFORM_RENN));
-		if ("true".equals(renren_Enable) && ("".equals(renren_AppId) || null == renren_AppId || "".equals(renren_AppKey) || null == renren_AppKey || "".equals(renren_SecretKey) || null == renren_SecretKey)) {
-			YtLog.e("人人配置错误", "人人被激活但是微信朋友圈信息未配,请在youtui_sdk.xml中配置人人信息");
-		}
-
-		shortMessageIndex = enList.indexOf(YtPlatform.getPlatfornName(YtPlatform.PLATFORM_MESSAGE));
-		emailIndex = enList.indexOf(YtPlatform.getPlatfornName(YtPlatform.PLATFORM_EMAIL));
-		moreIndex = enList.indexOf(YtPlatform.getPlatfornName(YtPlatform.PLATFORM_MORE_SHARE));
-		copyLinkIndex = enList.indexOf(YtPlatform.getPlatfornName(YtPlatform.PLATFORM_COPYLINK));
-	}
-	
+	}	
 	/**
 	 * 根据key获取youtui_sdk.xml文件中的value
 	 * @param context
