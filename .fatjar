@@ -1,0 +1,14 @@
+#Fat Jar Configuration File
+#Wed Sep 03 14:39:14 CST 2014
+onejar.license.required=true
+manifest.classpath=
+manifest.removesigners=true
+onejar.checkbox=false
+jarname=YtCore_fat.jar
+manifest.mergeall=true
+manifest.mainclass=
+manifest.file=<createnew>
+jarname.isextern=false
+onejar.expand=
+excludes=<jar|commons-httpclient-3.1.jar>;<jar|Android_SDK.jar>;<jar|RennSDK-Android.jar>;<jar|youitui-point_fat.jar>;<jar|mta-sdk-1.0.0.jar>;<jar|open_sdk.jar>;<jar|libammsdk.jar>;<jar|weibosdkcore.jar>
+includes=
