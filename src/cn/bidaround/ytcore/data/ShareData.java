@@ -20,15 +20,12 @@ public class ShareData implements Serializable{
 	 **/
 	public boolean isAppShare = false;
 	/**分享的文字*/
-	//private String text = "加载分享内容失败";
 	private String text = YtCore.res.getString(YtCore.res.getIdentifier("yt_getsharecontent_fail", "string", YtCore.packName));
 	/**分享的图片的本地路径*/
 	private String imagePath;
 	/**分享的描述*/
-	//private String description = "描述";
 	private String description = YtCore.res.getString(YtCore.res.getIdentifier("yt_description", "string", YtCore.packName));
 	/**分享的标题*/
-	//private String title = "分享";
 	private String title = YtCore.res.getString(YtCore.res.getIdentifier("yt_share", "string", YtCore.packName));
 	/**分享的图片的网络url*/
 	private String imageUrl;
@@ -42,8 +39,30 @@ public class ShareData implements Serializable{
 	public static final int SHARETYPE_IMAGE = 1;
 	/**纯文字分享,qq和qq空间不支持纯文字分享*/
 	public static final int SHARETYPE_TEXT = 2;
+	/**分享音乐*/
+	public static final int SHARETYPE_MUSIC = 3;
+	/**分享音乐*/
+	public static final int SHARETYPE_VIDEO = 4;
+	
 	/**用来判断分享的类型*/
 	private int shareType = SHARETYPE_IMAGEANDTEXT;
+	
+	private int imageType = 0;
+	/**分享图片类型为网络图片*/
+	public static final int IMAGETYPE_INTERNET = 1;
+	/**分享图片类型为本地sd卡图片*/
+	public static final int IMAGETYPE_SDCARD= 2;
+	/**分享图片类型为应用资源图片*/
+	public static final int IMAGETYPE_APPRESOURE = 3;
+	
+	private String musicUrl;
+	
+	private String videoUrl;
+	
+	
+	
+	
+	private String image;
 	
 	public ShareData(){
 		instance = this;
@@ -137,5 +156,45 @@ public class ShareData implements Serializable{
 		this.shareType = shareType;
 	}
 	
-	
+	/**
+	 * 
+	 * @param imageType 图片的类型
+	 * IMAGETYPE_NET = 1                                      网络图片
+	 * IMAGETYPE_SDCARD= 2                               本地sd卡图片 
+	 * IMAGETYPE_APPRESOURE=3                    应用资源图片
+	 * 
+	 * @param image 图片地址
+	 * imageType=IMAGETYPE_NET        传入网络图片url
+	 * imageType=IMAGETYPE_SDCARD     传入本地sd卡路径
+	 * imageType=IMAGETYPE_APPRESOURE 传入应用图片资源id(转为字符串)
+	 * 
+	 */
+	public void setImage(int imageType,String image){
+		this.imageType = imageType;
+		this.image = image;
+	}
+
+	public int getImageType() {
+		return imageType;
+	}
+
+	public String getImage() {
+		return image;
+	}
+
+	public String getMusicUrl() {
+		return musicUrl;
+	}
+
+	public void setMusicUrl(String musicUrl) {
+		this.musicUrl = musicUrl;
+	}
+
+	public String getVideoUrl() {
+		return videoUrl;
+	}
+
+	public void setVideoUrl(String videoUrl) {
+		this.videoUrl = videoUrl;
+	}	
 }

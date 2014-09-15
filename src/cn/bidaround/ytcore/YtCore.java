@@ -170,6 +170,8 @@ public class YtCore {
 		shareData.setText(oriData.getText());
 		shareData.setTitle(oriData.getTitle());
 		shareData.setShareType(oriData.getShareType());
+		shareData.setMusicUrl(oriData.getMusicUrl());
+		shareData.setVideoUrl(oriData.getVideoUrl());
 
 		String shortUrl = null;
 		final String realUrl = shareData.getTarget_url();
@@ -397,7 +399,8 @@ public class YtCore {
 			getAppShareData(shareData);
 		} else {
 			// 如果是内容分享，设置了网络图片而没有设置本地图片，则下载到本地再进行分享
-			if(shareData.getShareType()==ShareData.SHARETYPE_IMAGE||shareData.getShareType()==ShareData.SHARETYPE_IMAGEANDTEXT){
+			if(shareData.getShareType()==ShareData.SHARETYPE_IMAGE||shareData.getShareType()==ShareData.SHARETYPE_IMAGEANDTEXT
+					||shareData.getShareType()==ShareData.SHARETYPE_MUSIC||shareData.getShareType()==ShareData.SHARETYPE_VIDEO){
 				if (shareData.getImageUrl() != null && shareData.getImagePath() == null) {
 					String picPath = null;
 					if (shareData.getImageUrl().endsWith(".png")) {
@@ -417,7 +420,10 @@ public class YtCore {
 							return;
 						}
 					
+				}else if(shareData.getShareType()==ShareData.SHARETYPE_TEXT){
+					mHandler.sendEmptyMessage(GET_CONTENTSHAREDATA_SUCCESS);
 				}
+				
 				if (shareData.getImagePath() != null && !shareData.getImagePath().equals("")) {
 					Message msg = Message.obtain(mHandler, GET_CONTENTSHAREDATA_SUCCESS, shareData);
 					mHandler.sendMessage(msg);
@@ -573,6 +579,8 @@ public class YtCore {
 				YtPoint.init(act, KeyInfo.youTui_AppKey, null);
 			}
 		}.start();
+		
+
 		// 创建youtui对象
 		if (yt == null) {
 			yt = new YtCore();

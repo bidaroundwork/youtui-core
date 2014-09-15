@@ -1,18 +1,6 @@
 package cn.bidaround.ytcore.wxapi;
 
 import java.io.ByteArrayOutputStream;
-
-import com.tencent.mm.sdk.modelbase.BaseReq;
-import com.tencent.mm.sdk.modelbase.BaseResp;
-import com.tencent.mm.sdk.modelmsg.SendMessageToWX;
-import com.tencent.mm.sdk.modelmsg.WXImageObject;
-import com.tencent.mm.sdk.modelmsg.WXMediaMessage;
-import com.tencent.mm.sdk.modelmsg.WXTextObject;
-import com.tencent.mm.sdk.modelmsg.WXWebpageObject;
-import com.tencent.mm.sdk.openapi.IWXAPI;
-import com.tencent.mm.sdk.openapi.IWXAPIEventHandler;
-import com.tencent.mm.sdk.openapi.WXAPIFactory;
-
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
@@ -30,6 +18,19 @@ import cn.bidaround.ytcore.data.KeyInfo;
 import cn.bidaround.ytcore.data.ShareData;
 import cn.bidaround.ytcore.data.YtPlatform;
 import cn.bidaround.ytcore.util.Util;
+
+import com.tencent.mm.sdk.modelbase.BaseReq;
+import com.tencent.mm.sdk.modelbase.BaseResp;
+import com.tencent.mm.sdk.modelmsg.SendMessageToWX;
+import com.tencent.mm.sdk.modelmsg.WXImageObject;
+import com.tencent.mm.sdk.modelmsg.WXMediaMessage;
+import com.tencent.mm.sdk.modelmsg.WXMusicObject;
+import com.tencent.mm.sdk.modelmsg.WXTextObject;
+import com.tencent.mm.sdk.modelmsg.WXVideoObject;
+import com.tencent.mm.sdk.modelmsg.WXWebpageObject;
+import com.tencent.mm.sdk.openapi.IWXAPI;
+import com.tencent.mm.sdk.openapi.IWXAPIEventHandler;
+import com.tencent.mm.sdk.openapi.WXAPIFactory;
 /**
  * 微信分享activity
  * 
@@ -86,6 +87,7 @@ public class WXEntryActivity extends YtBaseActivity implements IWXAPIEventHandle
 		if(shareData==null){
 			return;
 		}
+		//YtLog.w("shareData.getShareType()", shareData.getShareType()+"");
 		if (shareData.getShareType() == ShareData.SHARETYPE_IMAGEANDTEXT) {
 			// 如果是图文分享
 			if (shareData.getImagePath() != null) {
@@ -104,7 +106,7 @@ public class WXEntryActivity extends YtBaseActivity implements IWXAPIEventHandle
 			WXWebpageObject pageObject = new WXWebpageObject();
 			pageObject.webpageUrl = shareData.getTarget_url();
 			msg.mediaObject = pageObject;
-
+			//YtLog.w("SHARETYPE_IMAGEANDTEXT", shareData.getImageUrl());
 		} else if (shareData.getShareType() == ShareData.SHARETYPE_IMAGE) {
 			// 如果是纯图分享
 			if (shareData.getImagePath() != null) {
@@ -116,17 +118,56 @@ public class WXEntryActivity extends YtBaseActivity implements IWXAPIEventHandle
 			} else {
 				bmpThum = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), YtCore.res.getIdentifier("yt_loadfail", "drawable", YtCore.packName)), 150, 150, true);
 			}
-
+			msg.title = shareData.getTitle();
+			msg.description = shareData.getText();
 			msg.setThumbImage(bmpThum);
 			WXImageObject image = new WXImageObject();
 			image.imagePath = shareData.getImagePath();
 			msg.mediaObject = image;
+			//YtLog.w("SHARETYPE_IMAGE", shareData.getImageUrl());
 		}else if(shareData.getShareType() == ShareData.SHARETYPE_TEXT){
+			//纯文字分享
 			msg.title = shareData.getTitle();
 			msg.description = shareData.getText();
 			WXTextObject text = new WXTextObject();
 			text.text = shareData.getText();
 			msg.mediaObject = text;
+		}else if(shareData.getShareType() == ShareData.SHARETYPE_MUSIC){
+			//音乐分享
+			WXMusicObject music = new WXMusicObject();
+			music.musicUrl = shareData.getMusicUrl();
+			msg.mediaObject = music;
+			msg.title = shareData.getTitle();
+			msg.description = shareData.getText();
+			if (shareData.getImagePath() != null) {
+				bitmap = BitmapFactory.decodeFile(shareData.getImagePath());
+			}
+			// bitmap为空时微信分享会没有响应，所以要设置一个默认图片让用户知道
+			if (bitmap != null) {
+				bmpThum = Bitmap.createScaledBitmap(bitmap, 150, 150, true);
+			} else {
+				bmpThum = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), YtCore.res.getIdentifier("yt_loadfail", "drawable", YtCore.packName)), 150, 150, true);
+			}
+			msg.setThumbImage(bmpThum);
+			//YtLog.w("SHARETYPE_MUSIC", shareData.getMusicUrl());
+		}else if(shareData.getShareType() == ShareData.SHARETYPE_VIDEO){
+			//视频分享
+			WXVideoObject video = new WXVideoObject();
+			video.videoUrl = shareData.getVideoUrl();
+			msg.mediaObject = video;
+			msg.title = shareData.getTitle();
+			msg.description = shareData.getText();
+			if (shareData.getImagePath() != null) {
+				bitmap = BitmapFactory.decodeFile(shareData.getImagePath());
+			}
+			// bitmap为空时微信分享会没有响应，所以要设置一个默认图片让用户知道
+			if (bitmap != null) {
+				bmpThum = Bitmap.createScaledBitmap(bitmap, 150, 150, true);
+			} else {
+				bmpThum = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), YtCore.res.getIdentifier("yt_loadfail", "drawable", YtCore.packName)), 150, 150, true);
+			}
+			msg.setThumbImage(bmpThum);
+			YtLog.w("SHARETYPE_MUSIC", shareData.getMusicUrl());
 		}
 
 		SendMessageToWX.Req req = new SendMessageToWX.Req();

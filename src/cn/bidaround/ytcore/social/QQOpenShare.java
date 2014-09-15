@@ -14,7 +14,6 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.widget.Toast;
 import cn.bidaround.point.ChannelId;
-import cn.bidaround.point.YtLog;
 import cn.bidaround.ytcore.ErrorInfo;
 import cn.bidaround.ytcore.YtShareListener;
 import cn.bidaround.ytcore.data.KeyInfo;
@@ -121,6 +120,21 @@ public class QQOpenShare {
 				} else if (shareData.getImageUrl() != null) {
 					params.putString(QQShare.SHARE_TO_QQ_IMAGE_URL,shareData.getImageUrl());
 				} 				
+				params.putString(QQShare.SHARE_TO_QQ_APP_NAME, appName);
+				params.putString(QQShare.SHARE_TO_QQ_TITLE, shareData.getTitle());
+				params.putString(QQShare.SHARE_TO_QQ_SUMMARY, shareData.getText());
+				params.putInt(QQShare.SHARE_TO_QQ_EXT_INT, 0);
+			}else if(shareData.getShareType()==ShareData.SHARETYPE_MUSIC){
+				//音乐分享
+				params.putInt(QQShare.SHARE_TO_QQ_KEY_TYPE, QQShare.SHARE_TO_QQ_TYPE_AUDIO);			
+				params.putString(QQShare.SHARE_TO_QQ_TARGET_URL,shareData.getTarget_url());
+				// 判断传输的是网络图片还是本地图片
+				if (shareData.getImagePath() != null) {
+					params.putString(QQShare.SHARE_TO_QQ_IMAGE_LOCAL_URL,shareData.getImagePath());
+				} else if (shareData.getImageUrl() != null) {
+					params.putString(QQShare.SHARE_TO_QQ_IMAGE_URL,shareData.getImageUrl());
+				} 	
+				params.putString(QQShare.SHARE_TO_QQ_AUDIO_URL, shareData.getMusicUrl());
 				params.putString(QQShare.SHARE_TO_QQ_APP_NAME, appName);
 				params.putString(QQShare.SHARE_TO_QQ_TITLE, shareData.getTitle());
 				params.putString(QQShare.SHARE_TO_QQ_SUMMARY, shareData.getText());

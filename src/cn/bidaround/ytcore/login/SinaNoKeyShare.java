@@ -68,8 +68,8 @@ public class SinaNoKeyShare {
 				return;
 			}
 			mCode = code;
-			//Util.showProgressDialog(act, "加载中", false);
-			Util.showProgressDialog(act,YtCore.res.getString(YtCore.res.getIdentifier("yt_loading", "string", YtCore.packName)), false);
+			// Util.showProgressDialog(act, "加载中", false);
+			Util.showProgressDialog(act, YtCore.res.getString(YtCore.res.getIdentifier("yt_loading", "string", YtCore.packName)), false);
 			fetchTokenAsync(mCode, CLIENT_SECRET);
 		}
 
@@ -138,60 +138,103 @@ public class SinaNoKeyShare {
 	 * @param shareData
 	 */
 	public static void shareToSina(final Activity act, final ShareData shareData, final YtShareListener listener, final String realUrl, final String shortUrl) {
-		WeiboParameters params = new WeiboParameters();
-		params.put("access_token", AccessTokenKeeper.readAccessToken(act).getToken());
-		// 添加新浪微博分享文字文字
-		if (shareData != null) {
-			String text = shareData.getText();
-			if (shareData.getShareType() == ShareData.SHARETYPE_IMAGEANDTEXT) {
-				// 如果文字太长，截取部分，不然微博无法发送
-				if (text.length() > 110) {
-					text = text.substring(0, 109);
-					text += "...";
-				}
-				//YtLog.e("shareToSina", shareData.getTarget_url());
-				if(shareData.getTarget_url()!=null&&!"".equals(shareData.getTarget_url())&&!"null".equals(shareData.getTarget_url())){
-					text += shareData.getTarget_url();
-				}				
-				params.put("status", text);
-			}else if(shareData.getShareType()==ShareData.SHARETYPE_IMAGE){
-				String picText = shareData.getText();
-				//picText = "分享图片";
-				picText = YtCore.res.getString(YtCore.res.getIdentifier("yt_sharepic", "string", YtCore.packName));
-				
-				params.put("status", picText);
-			}
-		}
-		// 添加新浪微博分享图片
-		if (shareData != null && shareData.getImagePath() != null) {
-			Bitmap bitmap = BitmapFactory.decodeFile(shareData.getImagePath());
-			params.put("pic", bitmap);
-		}
-		// 发送http请求进行分享
-		AsyncWeiboRunner.requestAsync("https://upload.api.weibo.com/2/statuses/upload.json", params, "POST", new RequestListener() {
-			@Override
-			public void onWeiboException(WeiboException arg0) {
-				Util.dismissDialog();
-				if (listener != null) {
-					ErrorInfo error = new ErrorInfo();
-					error.setErrorMessage(arg0.getMessage());
-					listener.onError(error);
-				}
-				act.finish();
-			}
+		if (shareData.getShareType() == ShareData.SHARETYPE_IMAGE || shareData.getShareType() == ShareData.SHARETYPE_IMAGE) {
+			WeiboParameters params = new WeiboParameters();
+			params.put("access_token", AccessTokenKeeper.readAccessToken(act).getToken());
+			// 添加新浪微博分享文字文字
+			if (shareData != null) {
+				String text = shareData.getText();
+				if (shareData.getShareType() == ShareData.SHARETYPE_IMAGEANDTEXT) {
+					// 如果文字太长，截取部分，不然微博无法发送
+					if (text.length() > 110) {
+						text = text.substring(0, 109);
+						text += "...";
+					}
+					// YtLog.e("shareToSina", shareData.getTarget_url());
+					if (shareData.getTarget_url() != null && !"".equals(shareData.getTarget_url()) && !"null".equals(shareData.getTarget_url())) {
+						text += shareData.getTarget_url();
+					}
+					params.put("status", text);
+				} else if (shareData.getShareType() == ShareData.SHARETYPE_IMAGE) {
+					String picText = shareData.getText();
+					// picText = "分享图片";
+					picText = YtCore.res.getString(YtCore.res.getIdentifier("yt_sharepic", "string", YtCore.packName));
 
-			@Override
-			public void onComplete(String arg0) {
-				Util.dismissDialog();
-				YtShareListener.sharePoint(act, KeyInfo.youTui_AppKey, ChannelId.SINAWEIBO, realUrl, !shareData.isAppShare, shortUrl);
-				if (listener != null) {
-					//YtLog.e("listener", "!=null");
-					ErrorInfo error = new ErrorInfo();
-					error.setErrorMessage(arg0);
-					listener.onSuccess(error);
+					params.put("status", picText);
 				}
-				act.finish();
 			}
-		});
+			// 添加新浪微博分享图片
+			if (shareData != null && shareData.getImagePath() != null) {
+				Bitmap bitmap = BitmapFactory.decodeFile(shareData.getImagePath());
+				params.put("pic", bitmap);
+			}
+			// 发送http请求进行分享
+			AsyncWeiboRunner.requestAsync("https://upload.api.weibo.com/2/statuses/upload.json", params, "POST", new RequestListener() {
+				@Override
+				public void onWeiboException(WeiboException arg0) {
+					Util.dismissDialog();
+					if (listener != null) {
+						ErrorInfo error = new ErrorInfo();
+						error.setErrorMessage(arg0.getMessage());
+						listener.onError(error);
+					}
+					act.finish();
+				}
+
+				@Override
+				public void onComplete(String arg0) {
+					Util.dismissDialog();
+					YtShareListener.sharePoint(act, KeyInfo.youTui_AppKey, ChannelId.SINAWEIBO, realUrl, !shareData.isAppShare, shortUrl);
+					if (listener != null) {
+						// YtLog.e("listener", "!=null");
+						ErrorInfo error = new ErrorInfo();
+						error.setErrorMessage(arg0);
+						listener.onSuccess(error);
+					}
+					act.finish();
+				}
+			});
+		} else if (shareData.getShareType() == ShareData.SHARETYPE_TEXT) {
+			WeiboParameters params = new WeiboParameters();
+			params.put("access_token", AccessTokenKeeper.readAccessToken(act).getToken());
+			// 如果文字太长，截取部分，不然微博无法发送
+			String text = shareData.getText();
+			if (text.length() > 110) {
+				text = text.substring(0, 109);
+				text += "...";
+			}
+			// YtLog.e("shareToSina", shareData.getTarget_url());
+			if (shareData.getTarget_url() != null && !"".equals(shareData.getTarget_url()) && !"null".equals(shareData.getTarget_url())) {
+				text += shareData.getTarget_url();
+			}
+			params.put("status", text);
+			// 发送http请求进行分享
+			AsyncWeiboRunner.requestAsync("https://api.weibo.com/2/statuses/update.json", params, "POST", new RequestListener() {
+				@Override
+				public void onWeiboException(WeiboException arg0) {
+					Util.dismissDialog();
+					if (listener != null) {
+						ErrorInfo error = new ErrorInfo();
+						error.setErrorMessage(arg0.getMessage());
+						listener.onError(error);
+					}
+					act.finish();
+				}
+
+				@Override
+				public void onComplete(String arg0) {
+					Util.dismissDialog();
+					YtShareListener.sharePoint(act, KeyInfo.youTui_AppKey, ChannelId.SINAWEIBO, realUrl, !shareData.isAppShare, shortUrl);
+					if (listener != null) {
+						// YtLog.e("listener", "!=null");
+						ErrorInfo error = new ErrorInfo();
+						error.setErrorMessage(arg0);
+						listener.onSuccess(error);
+					}
+					act.finish();
+				}
+			});
+		}
+
 	}
 }

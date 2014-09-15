@@ -22,7 +22,6 @@ public class YtBaseActivity extends Activity{
 		//Log.i(TAG, "onRestart");
 	}
 	
-	
 	@Override
 	protected void onPause() {
 		super.onPause();

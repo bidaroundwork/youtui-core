@@ -24,6 +24,11 @@ import cn.bidaround.ytcore.data.ShareData;
 import cn.bidaround.ytcore.util.Util;
 import com.renn.rennsdk.RennClient;
 import com.renn.rennsdk.RennClient.LoginListener;
+import com.renn.rennsdk.RennExecutor.CallBack;
+import com.renn.rennsdk.RennResponse;
+import com.renn.rennsdk.exception.RennException;
+import com.renn.rennsdk.param.PutBlogParam;
+import com.renn.rennsdk.param.PutFeedParam;
 
 /**
  * 人人分享和回调
@@ -91,12 +96,21 @@ public class RennShare {
 			// text += "分享图片";
 			text += res.getString(res.getIdentifier("yt_sharepic", "string", packname));
 		}
-		doRennShare(text, client);
+		
+		if(shareData.getShareType()==ShareData.SHARETYPE_IMAGE||shareData.getShareType()==ShareData.SHARETYPE_IMAGEANDTEXT){
+			doRennShare(text, client);
+		}else{
+			try {
+				doRennShare_text(text, client);
+			} catch (RennException e) {
+				e.printStackTrace();
+			}
+		}
+		
 	}
 
 	/**
 	 * 分享到人人操作
-	 * 
 	 * @param text
 	 * @param client
 	 */
@@ -129,7 +143,6 @@ public class RennShare {
 						Message successMsg = Message.obtain(handler, ShareActivity.RENN_SHARE_SUCCESS, respJson);
 						handler.sendMessage(successMsg);
 					} else if (respJson.startsWith("{\"error\"")) {
-
 						// 发动到UI线程处理
 						msg.what = ShareActivity.RENN_SHARE_ERROR;
 						msg.obj = post.getResponseBodyAsString();
@@ -152,6 +165,36 @@ public class RennShare {
 			};
 
 		}.start();
+	}
+	
+	/**
+	 * 分享纯文字
+	 * @param text
+	 * @param client
+	 * @throws RennException 
+	 */
+	private void doRennShare_text(final String text, final RennClient client) throws RennException{
+		PutBlogParam param = new PutBlogParam();
+		
+		param.setTitle(shareData.getTitle());
+		param.setContent(shareData.getText());
+		client.getRennService().sendAsynRequest(param, new CallBack(){
+
+			@Override
+			public void onFailed(String arg0, String arg1) {
+				Message msg = Message.obtain();
+				msg.what = ShareActivity.RENN_SHARE_ERROR;
+				msg.obj = arg0+":"+arg1;
+				handler.sendMessage(msg);
+			}
+
+			@Override
+			public void onSuccess(RennResponse response) {
+				Message successMsg = Message.obtain(handler, ShareActivity.RENN_SHARE_SUCCESS, response.toString());
+				handler.sendMessage(successMsg);
+			}
+			
+		});
 	}
 
 	/**

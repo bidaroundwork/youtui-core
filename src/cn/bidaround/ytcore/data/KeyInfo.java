@@ -187,6 +187,11 @@ public class KeyInfo {
 					if (parser.getAttributeValue(null, "Enable")!=null&&parser.getAttributeValue(null, "Enable").contains("true")) {
 						enList.add(YtPlatform.getPlatfornName(YtPlatform.PLATFORM_SCREENCAP));
 					}
+				}else if(YtPlatform.getPlatfornName(YtPlatform.PLATFORM_QRCORE).equals(tag)){
+					//二维码
+					if (parser.getAttributeValue(null, "Enable")!=null&&parser.getAttributeValue(null, "Enable").contains("true")) {
+						enList.add(YtPlatform.getPlatfornName(YtPlatform.PLATFORM_QRCORE));
+					}
 				}
 				break;
 			case XmlPullParser.END_TAG:
