@@ -36,6 +36,7 @@ import cn.bidaround.point.YoutuiConstants;
 import cn.bidaround.point.YtLog;
 import cn.bidaround.point.YtPoint;
 import cn.bidaround.ytcore.activity.ShareActivity;
+import cn.bidaround.ytcore.dao.YtCoreDao;
 import cn.bidaround.ytcore.data.KeyInfo;
 import cn.bidaround.ytcore.data.ShareData;
 import cn.bidaround.ytcore.data.YtPlatform;
@@ -93,6 +94,8 @@ public class YtCore {
 	private String appActivityId;
 	private static String targetUrl;
 	private static IWXAPI mIWXAPI;
+	private static int statisticsType = 1;
+	private static String linkUrl;
 	/** 处理获取待分享信息后的操作,获取到待分享信息就进行分享,没有获取到待分享信息则提醒用户 */
 	public Handler mHandler = new Handler() {
 		public void handleMessage(android.os.Message msg) {
@@ -535,7 +538,6 @@ public class YtCore {
 			mIWXAPI = WXAPIFactory.createWXAPI(act, KeyInfo.wechat_AppId, false);
 			mIWXAPI.registerApp(KeyInfo.wechat_AppId);
 		}
-
 		// 初始化积分组件
 		new Thread() {
 			@Override
@@ -543,11 +545,33 @@ public class YtCore {
 				YtPoint.init(act, KeyInfo.youTui_AppKey, appUserId);
 			}
 		}.start();
+		
+		getStatisticsType();
 		// 创建youtui对象
 		if (yt == null) {
 			yt = new YtCore();
 		}
 	}
+	
+	private static void getStatisticsType(){
+		new Thread() {
+			@Override
+			public void run() {
+				try {
+					String response = YtCoreDao.getLinkType();
+					JSONObject json = new JSONObject(response);
+					JSONObject object = json.getJSONObject("object");
+					statisticsType = object.getInt("statisticsType");
+					if(statisticsType==2){
+						linkUrl = object.getString("linkUrl");
+					}
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+		}.start();
+	}
+	
 
 	/** ytcore初始化操作 */
 	public static void init(final Activity act) {
@@ -579,8 +603,7 @@ public class YtCore {
 				YtPoint.init(act, KeyInfo.youTui_AppKey, null);
 			}
 		}.start();
-		
-
+		getStatisticsType();
 		// 创建youtui对象
 		if (yt == null) {
 			yt = new YtCore();
@@ -673,7 +696,12 @@ public class YtCore {
 			shareData.setTarget_url(url);
 		} else if (!shareData.isAppShare && shareData.getTarget_url() != null && !"".equals(shareData.getTarget_url())) {
 			// 如果是分享内容
-			shareData.setTarget_url(YoutuiConstants.YOUTUI_LINK_URL + shortUrl);
+			if(statisticsType==1){
+				shareData.setTarget_url(YoutuiConstants.YOUTUI_LINK_URL + shortUrl);
+			}else if(statisticsType==2){
+				shareData.setTarget_url(linkUrl+shortUrl);
+			}else if(statisticsType==3){
+			}
 		}
 	}
 
