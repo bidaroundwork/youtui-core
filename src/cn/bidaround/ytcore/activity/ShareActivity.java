@@ -1,9 +1,9 @@
 package cn.bidaround.ytcore.activity;
 
 import java.io.IOException;
-
 import android.content.Intent;
 import android.content.res.AssetManager;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -31,7 +31,6 @@ import cn.bidaround.ytcore.social.RennShare;
 import cn.bidaround.ytcore.social.SinaShare;
 import cn.bidaround.ytcore.social.TencentWbShare;
 import cn.bidaround.ytcore.util.Util;
-
 import com.sina.weibo.sdk.api.share.BaseResponse;
 import com.sina.weibo.sdk.api.share.IWeiboHandler;
 import com.sina.weibo.sdk.api.share.IWeiboShareAPI;
@@ -72,6 +71,8 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 	/** 长连接 */
 	private String realUrl;
 	private EditText editText;
+	private Resources res;
+	private String packName;
 	/** 处理人人分享回调 */
 	private Handler mHandler = new Handler() {
 		public void handleMessage(android.os.Message msg) {
@@ -101,12 +102,14 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 				break;
 			/** 处理人人分享网络错误 */
 			case RENN_HTTP_ERROR:
-				Toast.makeText(ShareActivity.this, "连接到服务器错误...", Toast.LENGTH_SHORT).show();
+				//Toast.makeText(ShareActivity.this, "连接到服务器错误...", Toast.LENGTH_SHORT).show();
+				Toast.makeText(ShareActivity.this,res.getString(res.getIdentifier("yt_connecterror", "string", packName)), Toast.LENGTH_SHORT).show();
 				ShareActivity.this.finish();
 				break;
 			/** 处理人人分享图片未找到 */
 			case RENN_PIC_NOTFOUND:
-				Toast.makeText(ShareActivity.this, "未找到分享图片，请重新设置分享图片路径...", Toast.LENGTH_SHORT).show();
+				//Toast.makeText(ShareActivity.this, "未找到分享图片，请重新设置分享图片路径...", Toast.LENGTH_SHORT).show();
+				Toast.makeText(ShareActivity.this,res.getString(res.getIdentifier("yt_nopic", "string", packName)), Toast.LENGTH_SHORT).show();
 				break;
 			default:
 				break;
@@ -118,7 +121,10 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 	protected void onCreate(Bundle savedInstanceState) {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		super.onCreate(savedInstanceState);
+		res = getResources();
+		packName = getPackageName();
 		doShare();
+
 	}
 
 	/**
@@ -134,7 +140,8 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 		// 分享到新浪微博
 		case PLATFORM_SINAWEIBO:
 			if (sinaWeiboIsNoKeyShare||noClient) {
-				initView("新浪微博", platform);
+				//initView("新浪微博", platform);
+				initView(res.getString(res.getIdentifier("yt_sinaweibo", "string", packName)), platform);
 			} else {
 				iWeiboShareAPI = WeiboShareSDK.createWeiboAPI(this, KeyInfo.sinaWeibo_AppKey);
 				sinaShare = new SinaShare(ShareActivity.this, shareData);
@@ -151,11 +158,13 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 			break;
 		// 分享到腾讯微博
 		case PLATFORM_TENCENTWEIBO:
-			initView("腾讯微博", platform);
+			//initView("腾讯微博", platform);
+			initView(res.getString(res.getIdentifier("yt_teccentweibo", "string",packName)), platform);
 			break;
 		// 分享到人人网
 		case PLATFORM_RENN:
-			initView("人人网", platform);
+			//initView("人人网", platform);
+			initView(res.getString(res.getIdentifier("yt_renn", "string",packName)), platform);
 			break;
 		default:
 			break;
@@ -170,7 +179,9 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 	protected void onNewIntent(Intent intent) {
 		setIntent(intent);
 		if (platform == YtPlatform.PLATFORM_SINAWEIBO) {
-			iWeiboShareAPI.handleWeiboResponse(intent, this);
+			if(iWeiboShareAPI!=null){
+				iWeiboShareAPI.handleWeiboResponse(intent, this);
+			}
 		}
 		super.onNewIntent(intent);
 	}
@@ -202,7 +213,8 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 		// 分享错误
 		case WBConstants.ErrorCode.ERR_FAIL:
 			if ("auth faild!!!!".equals(baseResp.errMsg)) {
-				Toast.makeText(this, "授权失败,请重新获取授权...", Toast.LENGTH_SHORT).show();
+				//Toast.makeText(this, "授权失败,请重新获取授权...", Toast.LENGTH_SHORT).show();
+				Toast.makeText(this,res.getString(res.getIdentifier("yt_reauth", "string", packName)), Toast.LENGTH_SHORT).show();
 				iWeiboShareAPI.registerApp();
 			} else {
 				if (listener != null) {
@@ -219,6 +231,15 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 
 		finish();
 
+	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		// TODO Auto-generated method stub
+		if(requestCode==0){
+			finish();
+		}
+		super.onActivityResult(requestCode, resultCode, data);
 	}
 
 	@Override
@@ -294,13 +315,15 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 			@Override
 			public void onClick(View v) {
 				if (platform == YtPlatform.PLATFORM_RENN) {
-					Util.showProgressDialog(ShareActivity.this, "分享中...", true);
+					//Util.showProgressDialog(ShareActivity.this, "分享中...", true);
+					Util.showProgressDialog(ShareActivity.this,res.getString(res.getIdentifier("yt_shareing", "string", packName)), true);
 					String text = editText.getText().toString();
 					shareData.setText(text);
 					new RennShare(ShareActivity.this, mHandler, listener, shareData).shareToRenn();
 					
 				} else if (platform == YtPlatform.PLATFORM_TENCENTWEIBO) {
-					Util.showProgressDialog(ShareActivity.this, "分享中...", true);
+					//Util.showProgressDialog(ShareActivity.this, "分享中...", true);
+					Util.showProgressDialog(ShareActivity.this,res.getString(res.getIdentifier("yt_shareing", "string", packName)), true);
 					String text = editText.getText().toString();
 					shareData.setText(text);
 					new TencentWbShare(ShareActivity.this, listener, shareData).shareToTencentWb();
@@ -308,7 +331,8 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 					// 没有key的情况下进行新浪微博分享
 					String text = editText.getText().toString();
 					shareData.setText(text);
-					Util.showProgressDialog(ShareActivity.this, "分享中...", true);
+					//Util.showProgressDialog(ShareActivity.this, "分享中...", true);
+					Util.showProgressDialog(ShareActivity.this,res.getString(res.getIdentifier("yt_shareing", "string", packName)), true);
 					SinaNoKeyShare.shareToSina(ShareActivity.this, shareData, listener, realUrl, shortUrl);
 				}
 			}
@@ -320,12 +344,14 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 		// 分享内容框
 		LinearLayout bodyLayout = new LinearLayout(this);
 		bodyLayout.setOrientation(LinearLayout.VERTICAL);
-		LinearLayout.LayoutParams bodyParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, Util.dip2px(this, 270));
+		LinearLayout.LayoutParams bodyParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 		bodyLayout.setLayoutParams(bodyParams);
 		bodyLayout.setBackgroundColor(0xfff4f4f4);
+		bodyLayout.setHorizontalGravity(Gravity.LEFT);
+		bodyLayout.setVerticalGravity(Gravity.TOP);
 		// 分享的文字
 		editText = new EditText(this);
-		LinearLayout.LayoutParams editParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, Util.dip2px(this, 160));
+		LinearLayout.LayoutParams editParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT);
 		editParams.setMargins(8, 8, 8, 8);
 		editText.setLayoutParams(editParams);
 		if (shareData != null && shareData.getText() != null) {
@@ -337,13 +363,16 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 		editText.setBackgroundDrawable(null);
 		// 分享的图片
 		ImageView shareImage = new ImageView(this);
-		LinearLayout.LayoutParams shareImageParams = new LinearLayout.LayoutParams(Util.dip2px(this, 100), Util.dip2px(this, 100));
-		shareImageParams.setMargins(8, 0, 8, 8);
+		LinearLayout.LayoutParams shareImageParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+		shareImageParams.setMargins(15, 15, 25, 15);
+		shareImageParams.gravity = Gravity.LEFT;
 		shareImage.setLayoutParams(shareImageParams);
 		if (shareData != null && shareData.getImagePath() != null) {
 			Bitmap imageBit = BitmapFactory.decodeFile(shareData.getImagePath());
-			BitmapDrawable bitDraw = new BitmapDrawable(imageBit);
-			shareImage.setBackgroundDrawable(bitDraw);
+			Bitmap scaleBit = Bitmap.createScaledBitmap(imageBit, Util.dip2px(this, 300), Util.dip2px(this, 300)*imageBit.getHeight()/imageBit.getWidth(), true);
+			BitmapDrawable bitDraw = new BitmapDrawable(scaleBit);
+			
+			shareImage.setImageDrawable(bitDraw);
 		}
 
 		bodyLayout.addView(editText);

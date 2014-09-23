@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 
+import cn.bidaround.point.YtLog;
+
 import com.sina.weibo.sdk.auth.Oauth2AccessToken;
 
 /**
@@ -83,6 +85,7 @@ public class AccessTokenKeeper {
         
         Oauth2AccessToken token = new Oauth2AccessToken();
         SharedPreferences pref = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_APPEND);
+        YtLog.e("readAccessToken", pref.getString(KEY_ACCESS_TOKEN, ""));
         token.setUid(pref.getString(KEY_UID, ""));
         token.setToken(pref.getString(KEY_ACCESS_TOKEN, ""));
         token.setExpiresTime(pref.getLong(KEY_EXPIRES_IN, 0));

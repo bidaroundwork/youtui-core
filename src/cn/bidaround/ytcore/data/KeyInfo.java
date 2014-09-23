@@ -3,11 +3,9 @@ package cn.bidaround.ytcore.data;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
-
 import android.content.Context;
 
 /**
@@ -188,6 +186,11 @@ public class KeyInfo {
 					//截屏Enable
 					if (parser.getAttributeValue(null, "Enable")!=null&&parser.getAttributeValue(null, "Enable").contains("true")) {
 						enList.add(YtPlatform.getPlatfornName(YtPlatform.PLATFORM_SCREENCAP));
+					}
+				}else if(YtPlatform.getPlatfornName(YtPlatform.PLATFORM_QRCORE).equals(tag)){
+					//二维码
+					if (parser.getAttributeValue(null, "Enable")!=null&&parser.getAttributeValue(null, "Enable").contains("true")) {
+						enList.add(YtPlatform.getPlatfornName(YtPlatform.PLATFORM_QRCORE));
 					}
 				}
 				break;

@@ -10,10 +10,10 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.widget.Toast;
 import cn.bidaround.point.ChannelId;
-import cn.bidaround.point.YtLog;
 import cn.bidaround.ytcore.ErrorInfo;
 import cn.bidaround.ytcore.YtShareListener;
 import cn.bidaround.ytcore.data.KeyInfo;
@@ -45,6 +45,8 @@ public class QQOpenShare {
 	/**待分享数据*/
 	private ShareData shareData;
 	private String appName;
+	private Resources res;
+	private String packName;
 
 	public QQOpenShare(Activity act, String flag,YtShareListener listener,ShareData shareData) {
 		this.act = act;
@@ -52,7 +54,8 @@ public class QQOpenShare {
 		this.listener = listener;
 		this.shareData = shareData;
 		init(act);
-		
+		res = act.getResources();
+		packName = act.getPackageName();
 	}
 
 	/**
@@ -107,10 +110,39 @@ public class QQOpenShare {
 					params.putString(QQShare.SHARE_TO_QQ_IMAGE_URL,shareData.getImageUrl());
 				} 
 				params.putString(QQShare.SHARE_TO_QQ_APP_NAME, appName);				
+			}else if(shareData.getShareType()==ShareData.SHARETYPE_TEXT){
+				//图文分享
+				params.putInt(QQShare.SHARE_TO_QQ_KEY_TYPE, QQShare.SHARE_TO_QQ_TYPE_DEFAULT);			
+				params.putString(QQShare.SHARE_TO_QQ_TARGET_URL,shareData.getTarget_url());
+				// 判断传输的是网络图片还是本地图片
+				if (shareData.getImagePath() != null) {
+					params.putString(QQShare.SHARE_TO_QQ_IMAGE_LOCAL_URL,shareData.getImagePath());
+				} else if (shareData.getImageUrl() != null) {
+					params.putString(QQShare.SHARE_TO_QQ_IMAGE_URL,shareData.getImageUrl());
+				} 				
+				params.putString(QQShare.SHARE_TO_QQ_APP_NAME, appName);
+				params.putString(QQShare.SHARE_TO_QQ_TITLE, shareData.getTitle());
+				params.putString(QQShare.SHARE_TO_QQ_SUMMARY, shareData.getText());
+				params.putInt(QQShare.SHARE_TO_QQ_EXT_INT, 0);
+			}else if(shareData.getShareType()==ShareData.SHARETYPE_MUSIC){
+				//音乐分享
+				params.putInt(QQShare.SHARE_TO_QQ_KEY_TYPE, QQShare.SHARE_TO_QQ_TYPE_AUDIO);			
+				params.putString(QQShare.SHARE_TO_QQ_TARGET_URL,shareData.getTarget_url());
+				// 判断传输的是网络图片还是本地图片
+				if (shareData.getImagePath() != null) {
+					params.putString(QQShare.SHARE_TO_QQ_IMAGE_LOCAL_URL,shareData.getImagePath());
+				} else if (shareData.getImageUrl() != null) {
+					params.putString(QQShare.SHARE_TO_QQ_IMAGE_URL,shareData.getImageUrl());
+				} 	
+				params.putString(QQShare.SHARE_TO_QQ_AUDIO_URL, shareData.getMusicUrl());
+				params.putString(QQShare.SHARE_TO_QQ_APP_NAME, appName);
+				params.putString(QQShare.SHARE_TO_QQ_TITLE, shareData.getTitle());
+				params.putString(QQShare.SHARE_TO_QQ_SUMMARY, shareData.getText());
+				params.putInt(QQShare.SHARE_TO_QQ_EXT_INT, 0);
 			}
+			
 			mTencent.shareToQQ(act, params, new MyQQShareUIListener());
 		}
-
 	}
 
 	/**
@@ -143,7 +175,7 @@ public class QQOpenShare {
 				params.putInt(QQShare.SHARE_TO_QQ_KEY_TYPE, QQShare.SHARE_TO_QQ_TYPE_DEFAULT);
 				params.putString(QQShare.SHARE_TO_QQ_TITLE, shareData.getTitle());
 				params.putString(QQShare.SHARE_TO_QQ_TARGET_URL, shareData.getTarget_url()); 
-				YtLog.d("shareToQzone shareData.getTarget_url()", shareData.getTarget_url());
+				//YtLog.d("shareToQzone shareData.getTarget_url()", shareData.getTarget_url());
 				ArrayList<String> list = new ArrayList<String>();
 				// 判断传输的是网络图片还是本地图片
 				if (shareData.getImagePath() != null) {
@@ -153,8 +185,22 @@ public class QQOpenShare {
 				}
 				params.putStringArrayList(QQShare.SHARE_TO_QQ_IMAGE_URL, list);
 				params.putString(QQShare.SHARE_TO_QQ_APP_NAME, appName);
+			}else if(shareData.getShareType()==ShareData.SHARETYPE_TEXT){
+				params.putInt(QQShare.SHARE_TO_QQ_KEY_TYPE, QQShare.SHARE_TO_QQ_TYPE_DEFAULT);
+				params.putString(QQShare.SHARE_TO_QQ_TITLE, shareData.getTitle());
+				params.putString(QQShare.SHARE_TO_QQ_SUMMARY, shareData.getText());
+				params.putString(QQShare.SHARE_TO_QQ_TARGET_URL, shareData.getTarget_url());
+				params.putString(QQShare.SHARE_TO_QQ_APP_NAME, appName);
+				
+				ArrayList<String> list = new ArrayList<String>();
+				// 判断传输的是网络图片还是本地图片
+				if (shareData.getImagePath() != null) {
+					list.add(shareData.getImagePath());
+				} else if (shareData.getImageUrl() != null) {
+					list.add(shareData.getImageUrl());
+				}
+				params.putStringArrayList(QQShare.SHARE_TO_QQ_IMAGE_URL, list);
 			}
-
 			mTencent.shareToQzone(act, params, new MyQQShareUIListener());
 		}
 	}
@@ -218,13 +264,15 @@ public class QQOpenShare {
 
 		@Override
 		public void onCancel() {
-			Toast.makeText(act, "授权取消", Toast.LENGTH_SHORT).show();
+			//Toast.makeText(act, "授权取消", Toast.LENGTH_SHORT).show();
+			Toast.makeText(act,res.getString(res.getIdentifier("yt_authcancel", "string", packName)), Toast.LENGTH_SHORT).show();
 			act.finish();
 		}
 
 		@Override
 		public void onComplete(Object object) {
-			Toast.makeText(act, "授权成功", Toast.LENGTH_SHORT).show();
+			//Toast.makeText(act, "授权成功", Toast.LENGTH_SHORT).show();
+			Toast.makeText(act,res.getString(res.getIdentifier("yt_authsuccess", "string", packName)), Toast.LENGTH_SHORT).show();
 			// 将access_token信息写入SharedPreferences中
 			SharedPreferences sp = act.getSharedPreferences("tencent_open_access", 0);
 			Editor edit = sp.edit();
@@ -243,7 +291,8 @@ public class QQOpenShare {
 
 		@Override
 		public void onError(UiError arg0) {
-			Toast.makeText(act, "授权错误", Toast.LENGTH_SHORT).show();
+			//Toast.makeText(act, "授权错误", Toast.LENGTH_SHORT).show();
+			Toast.makeText(act, res.getString(res.getIdentifier("yt_authfailed", "string", packName)), Toast.LENGTH_SHORT).show();
 			act.finish();
 		}
 

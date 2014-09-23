@@ -8,7 +8,7 @@ import cn.bidaround.point.ChannelId;
  */
 public enum YtPlatform {
 	PLATFORM_SINAWEIBO, PLATFORM_TENCENTWEIBO, PLATFORM_QZONE, PLATFORM_WECHAT, PLATFORM_RENN, PLATFORM_QQ, PLATFORM_MESSAGE, PLATFORM_EMAIL, PLATFORM_WECHATMOMENTS, PLATFORM_MORE_SHARE,
-	PLATFORM_COPYLINK,PLATFORM_SCREENCAP;
+	PLATFORM_COPYLINK,PLATFORM_SCREENCAP,PLATFORM_QRCORE;
 	/**平台类型为微信，QQ，人人，新浪微博，腾讯微博等社交平台*/
 	public static final int PLATFORMTYPE_SOCIAL = 0;
 	/**平台类型为短信，邮件，更多等系统分享*/
@@ -42,6 +42,8 @@ public enum YtPlatform {
 			return "CopyLink";
 		case PLATFORM_SCREENCAP:
 			return "ScreenCap";
+		case PLATFORM_QRCORE:
+			return "QRCode";
 		default:
 			break;
 		}
@@ -82,7 +84,7 @@ public enum YtPlatform {
 	}
 	
 	public static int getPlatformType(YtPlatform platform){
-		if(platform==YtPlatform.PLATFORM_COPYLINK||platform==PLATFORM_SCREENCAP){
+		if(platform==YtPlatform.PLATFORM_COPYLINK||platform==PLATFORM_SCREENCAP||platform==PLATFORM_QRCORE){
 			return PLATFORMTYPE_UTIL;
 		}else if(platform==YtPlatform.PLATFORM_MESSAGE||platform==YtPlatform.PLATFORM_EMAIL||platform==PLATFORM_MORE_SHARE){
 			return PLATFORMTYPE_SYSTEM;

@@ -1,5 +1,5 @@
 #Fat Jar Configuration File
-#Wed Jun 18 17:19:57 CST 2014
+#Wed Sep 03 14:39:14 CST 2014
 onejar.license.required=true
 manifest.classpath=
 manifest.removesigners=true
@@ -10,5 +10,5 @@ manifest.mainclass=
 manifest.file=<createnew>
 jarname.isextern=false
 onejar.expand=
-excludes=
+excludes=<jar|commons-httpclient-3.1.jar>;<jar|Android_SDK.jar>;<jar|RennSDK-Android.jar>;<jar|youitui-point_fat.jar>;<jar|mta-sdk-1.0.0.jar>;<jar|open_sdk.jar>;<jar|libammsdk.jar>;<jar|weibosdkcore.jar>
 includes=

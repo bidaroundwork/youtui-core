@@ -1,5 +1,6 @@
 package cn.bidaround.ytcore.social;
 
+import cn.bidaround.ytcore.YtCore;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
@@ -39,13 +40,15 @@ public class OtherShare {
 		Intent email = new Intent(android.content.Intent.ACTION_SEND);
 		 email.setType("plain/text");
 		//email.setType("image/png");
-		String emailSubject = "共享软件";
+		//String emailSubject = "分享";
+		 String emailSubject = YtCore.res.getString(YtCore.res.getIdentifier("yt_share", "string", YtCore.packName));
 		// 设置邮件默认标题
 		email.putExtra(android.content.Intent.EXTRA_SUBJECT, emailSubject);
 		// 设置要默认发送的内容
 		email.putExtra(android.content.Intent.EXTRA_TEXT, emailBody);
 		// 调用系统的邮件系统
-		act.startActivityForResult(Intent.createChooser(email, "请选择邮件发送软件"), 1001);
+		//act.startActivityForResult(Intent.createChooser(email, "请选择邮件发送软件"), 1001);
+		act.startActivityForResult(Intent.createChooser(email,YtCore.res.getString(YtCore.res.getIdentifier("yt_chooseemail", "string", YtCore.packName))), 1001);
 	}
 
 }

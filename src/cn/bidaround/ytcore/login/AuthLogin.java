@@ -1,5 +1,6 @@
 package cn.bidaround.ytcore.login;
 
+import cn.bidaround.ytcore.YtCore;
 import cn.bidaround.ytcore.util.Util;
 import android.app.Activity;
 import android.content.Intent;
@@ -22,7 +23,7 @@ public  class AuthLogin {
 			AuthActivity.authListener = listener;
 			act.startActivity(sinaLogin);
 		} else {
-			Toast.makeText(act, "无网络连接...", Toast.LENGTH_SHORT).show();
+			Toast.makeText(act,YtCore.res.getString(YtCore.res.getIdentifier("yt_nonetwork", "string", YtCore.packName)), Toast.LENGTH_SHORT).show();
 		}
 	}
 
@@ -38,7 +39,8 @@ public  class AuthLogin {
 			act.startActivity(qqLogin);
 			
 		} else {
-			Toast.makeText(act, "无网络连接...", Toast.LENGTH_SHORT).show();
+			//Toast.makeText(act, "无网络连接...", Toast.LENGTH_SHORT).show();
+			Toast.makeText(act,YtCore.res.getString(YtCore.res.getIdentifier("yt_nonetwork", "string", YtCore.packName)), Toast.LENGTH_SHORT).show();
 		}
 
 	}
@@ -55,7 +57,8 @@ public  class AuthLogin {
 			AuthActivity.authListener = listener;
 			act.startActivity(tencentWbLogin);
 		} else {
-			Toast.makeText(act, "无网络连接...", Toast.LENGTH_SHORT).show();
+			//Toast.makeText(act, "无网络连接...", Toast.LENGTH_SHORT).show();
+			Toast.makeText(act,YtCore.res.getString(YtCore.res.getIdentifier("yt_nonetwork", "string", YtCore.packName)), Toast.LENGTH_SHORT).show();
 		}
 
 	}

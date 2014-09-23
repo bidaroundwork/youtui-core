@@ -16,6 +16,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
@@ -37,9 +38,6 @@ import cn.bidaround.ytcore.YtBaseActivity;
 import cn.bidaround.ytcore.data.KeyInfo;
 import cn.bidaround.ytcore.util.AccessTokenKeeper;
 import cn.bidaround.ytcore.util.AppHelper;
-
-import com.sina.weibo.sdk.api.share.IWeiboShareAPI;
-import com.sina.weibo.sdk.api.share.WeiboShareSDK;
 import com.sina.weibo.sdk.auth.Oauth2AccessToken;
 import com.sina.weibo.sdk.auth.WeiboAuth;
 import com.sina.weibo.sdk.auth.WeiboAuthListener;
@@ -51,7 +49,6 @@ import com.tencent.tauth.Tencent;
 import com.tencent.tauth.UiError;
 import com.tencent.weibo.sdk.android.api.util.BackGroudSeletor;
 import com.tencent.weibo.sdk.android.api.util.Util;
-import cn.bidaround.point.YtLog;
 
 /**
  * 授权登录Activity 
@@ -95,6 +92,8 @@ public final class AuthActivity extends YtBaseActivity {
 	private String tencentWbOpenid;
 	/** 腾讯微博用户名 */
 	private String tencentWbname;
+	
+	private String qqAuthResponse;
 	/** 授权监听 */
 	public static AuthListener authListener;
 	/**新浪微博授权成功*/
@@ -112,6 +111,9 @@ public final class AuthActivity extends YtBaseActivity {
 	//private static final int TENCENTWB_FAIL = 8;
 	/**提醒线程停止sleep*/
 	private static final int STOP_SLEEP = 101;
+	
+	private Resources res;
+	private String packName;
 	/**处理分享结果*/
 	private Handler mHandler = new Handler() {
 		AuthUserInfo userInfo = new AuthUserInfo();
@@ -129,13 +131,16 @@ public final class AuthActivity extends YtBaseActivity {
 					userInfo.setSinaScreenname(sinaJson.getString("screen_name"));
 					userInfo.setSinaProfileImageUrl(sinaJson.getString("profile_image_url"));
 					if (sinaJson.getString("gender").equals("m")) {
-						userInfo.setSinaGender("男");
+						//userInfo.setSinaGender("男");
+						userInfo.setSinaGender(res.getString(res.getIdentifier("yt_man", "string", packName)));
 					} else {
-						userInfo.setSinaGender("女");
+						//userInfo.setSinaGender("女");
+						userInfo.setSinaGender(res.getString(res.getIdentifier("yt_woman", "string", packName)));
 					}
 
 					userInfo.setSinaName(sinaJson.getString("name"));
-					cn.bidaround.ytcore.util.Util.showProgressDialog(AuthActivity.this, "加载中...", true);
+					//cn.bidaround.ytcore.util.Util.showProgressDialog(AuthActivity.this, "加载中...", true);
+					cn.bidaround.ytcore.util.Util.showProgressDialog(AuthActivity.this, res.getString(res.getIdentifier("yt_loading", "string", packName)), true);
 					// 跳转的时候等待2秒
 					new Thread() {
 						public void run() {
@@ -148,8 +153,7 @@ public final class AuthActivity extends YtBaseActivity {
 						};
 					}.start();
 				} catch (JSONException e) {
-
-					YtLog.e("sinaUesrInfo JSONException", ((JSONObject) msg.obj).toString());
+					//YtLog.e("sinaUesrInfo JSONException", ((JSONObject) msg.obj).toString());
 					if (authListener != null) {
 						authListener.onAuthFail(AuthActivity.this);
 					}
@@ -161,7 +165,9 @@ public final class AuthActivity extends YtBaseActivity {
 			case QQ_AUTH_SUCCESS:
 				JSONObject json = (JSONObject) msg.obj;
 				userInfo.setQqOpenid(mTencent.getQQToken().getOpenId());
+				userInfo.setQqAuthResponse(qqAuthResponse);
 				try {
+					userInfo.setQqUserInfoResponse(json.toString());
 					userInfo.setQqNickName(json.getString("nickname"));
 					userInfo.setQqImageUrl(json.getString("figureurl_qq_1"));
 					userInfo.setQqGender(json.getString("gender"));
@@ -176,7 +182,7 @@ public final class AuthActivity extends YtBaseActivity {
 						};
 					}.start();
 				} catch (JSONException e) {
-					YtLog.e("sinaUesrInfo JSONException", ((JSONObject) msg.obj).toString());
+					//YtLog.e("sinaUesrInfo JSONException", ((JSONObject) msg.obj).toString());
 					if (authListener != null) {
 						authListener.onAuthFail(AuthActivity.this);
 					}
@@ -194,11 +200,14 @@ public final class AuthActivity extends YtBaseActivity {
 					userInfo.setTencentWbOpenid(tencentWbOpenid);
 					userInfo.setTencentWbGender(tencentWbJson.getString("sex"));
 					if (tencentWbJson.getString("sex").equals("1")) {
-						userInfo.setTencentWbGender("男");
+						//userInfo.setTencentWbGender("男");
+						userInfo.setTencentWbGender(res.getString(res.getIdentifier("yt_man", "string", packName)));
 					} else {
-						userInfo.setTencentWbGender("女");
+						//userInfo.setTencentWbGender("女");
+						userInfo.setTencentWbGender(res.getString(res.getIdentifier("yt_woman", "string", packName)));
 					}
-					cn.bidaround.ytcore.util.Util.showProgressDialog(AuthActivity.this, "加载中...", true);
+					//cn.bidaround.ytcore.util.Util.showProgressDialog(AuthActivity.this, "加载中...", true);
+					cn.bidaround.ytcore.util.Util.showProgressDialog(AuthActivity.this, res.getString(res.getIdentifier("yt_loading", "string", packName)), true);
 					new Thread() {
 						public void run() {
 							try {
@@ -217,10 +226,12 @@ public final class AuthActivity extends YtBaseActivity {
 			case STOP_SLEEP:
 				/** 避免用户在授权等待时取消操作造成错误，添加以下判断 */
 				if (userInfo != null && authListener != null) {
-					Toast.makeText(AuthActivity.this, "授权成功", Toast.LENGTH_SHORT).show();
+					//Toast.makeText(AuthActivity.this, "授权成功", Toast.LENGTH_SHORT).show();
+					Toast.makeText(AuthActivity.this,res.getString(res.getIdentifier("yt_authsuccess", "string", packName)), Toast.LENGTH_SHORT).show();
 					authListener.onAuthSucess(AuthActivity.this, userInfo);
 				} else {
-					Toast.makeText(AuthActivity.this, "授权取消", Toast.LENGTH_SHORT).show();
+					//Toast.makeText(AuthActivity.this, "授权取消", Toast.LENGTH_SHORT).show();
+					Toast.makeText(AuthActivity.this, res.getString(res.getIdentifier("yt_authcancel", "string", packName)), Toast.LENGTH_SHORT).show();
 				}
 				cn.bidaround.ytcore.util.Util.dismissDialog();
 				AuthActivity.this.finish();
@@ -235,7 +246,8 @@ public final class AuthActivity extends YtBaseActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		super.onCreate(savedInstanceState);
-
+		res = getResources();
+		packName = getPackageName();
 		initData();
 	}
 
@@ -285,7 +297,8 @@ public final class AuthActivity extends YtBaseActivity {
 
 		@Override
 		public void onCancel() {
-			Toast.makeText(AuthActivity.this, "授权取消", Toast.LENGTH_SHORT).show();
+			//Toast.makeText(AuthActivity.this, "授权取消", Toast.LENGTH_SHORT).show();
+			Toast.makeText(AuthActivity.this,res.getString(res.getIdentifier("yt_authcancel", "string", packName)), Toast.LENGTH_SHORT).show();
 			if (authListener != null) {
 				authListener.onAuthCancel(AuthActivity.this);
 			}
@@ -294,20 +307,23 @@ public final class AuthActivity extends YtBaseActivity {
 
 		@Override
 		public void onComplete(Object obj) {
+			//qqAuthResponse = (String) obj;
+			//YtLog.e("qq auth complate", obj.toString());
 			UserInfo info = new UserInfo(AuthActivity.this, mTencent.getQQToken());
-			cn.bidaround.ytcore.util.Util.showProgressDialog(AuthActivity.this, "授权中...", true);
+			//cn.bidaround.ytcore.util.Util.showProgressDialog(AuthActivity.this, "授权中...", true);
+			cn.bidaround.ytcore.util.Util.showProgressDialog(AuthActivity.this, res.getString(res.getIdentifier("yt_authing", "string", packName)), true);
 			info.getUserInfo(getInfoListener);
 		}
 
 		@Override
 		public void onError(UiError arg0) {
-			Toast.makeText(AuthActivity.this, "授权错误", Toast.LENGTH_SHORT).show();
+			//Toast.makeText(AuthActivity.this, "授权错误", Toast.LENGTH_SHORT).show();
+			Toast.makeText(AuthActivity.this, res.getString(res.getIdentifier("yt_authfailed", "string", packName)), Toast.LENGTH_SHORT).show();
 			if (authListener != null) {
 				authListener.onAuthFail(AuthActivity.this);
 			}
 			AuthActivity.this.finish();
 		}
-
 	};
 
 	/**
@@ -325,6 +341,7 @@ public final class AuthActivity extends YtBaseActivity {
 
 		@Override
 		public void onComplete(Object obj) {
+			
 			Message msg = Message.obtain();
 			msg.what = QQ_AUTH_SUCCESS;
 			msg.obj = obj;
@@ -346,7 +363,8 @@ public final class AuthActivity extends YtBaseActivity {
 	 */
 	@SuppressWarnings("deprecation")
 	private void initTencentWb() {
-		cn.bidaround.ytcore.util.Util.showProgressDialog(this, "加载中...", true);
+		//cn.bidaround.ytcore.util.Util.showProgressDialog(this, "加载中...", true);
+		cn.bidaround.ytcore.util.Util.showProgressDialog(this,res.getString(res.getIdentifier("yt_loading", "string", packName)), true);
 		if (!Util.isNetworkAvailable(this)) {
 			this.showDialog(ALERT_NETWORK);
 		} else {
@@ -548,12 +566,14 @@ public final class AuthActivity extends YtBaseActivity {
 
 		case PROGRESS_H:
 			_dialog = new ProgressDialog(this);
-			((ProgressDialog) _dialog).setMessage("加载中...");
+			//((ProgressDialog) _dialog).setMessage("加载中...");
+			((ProgressDialog) _dialog).setMessage(res.getString(res.getIdentifier("yt_loading", "string", packName)));
 			break;
 		case ALERT_NETWORK:
 			AlertDialog.Builder builder2 = new AlertDialog.Builder(this);
-			builder2.setTitle("网络连接异常，是否重新连接？");
-			builder2.setPositiveButton("是", new DialogInterface.OnClickListener() {
+			//builder2.setTitle("网络连接异常，是否重新连接？");
+			builder2.setTitle(res.getString(res.getIdentifier("yt_reconnect", "string", packName)));
+			builder2.setPositiveButton("yes", new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					if (Util.isNetworkAvailable(AuthActivity.this)) {
@@ -566,7 +586,7 @@ public final class AuthActivity extends YtBaseActivity {
 				}
 
 			});
-			builder2.setNegativeButton("否", new DialogInterface.OnClickListener() {
+			builder2.setNegativeButton("no", new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					AuthActivity.this.finish();
@@ -585,7 +605,8 @@ public final class AuthActivity extends YtBaseActivity {
 	class SinaAuthListener implements WeiboAuthListener {
 		@Override
 		public void onCancel() {
-			Toast.makeText(AuthActivity.this, "授权取消", Toast.LENGTH_SHORT).show();
+			//Toast.makeText(AuthActivity.this, "授权取消", Toast.LENGTH_SHORT).show();
+			Toast.makeText(AuthActivity.this, res.getString(res.getIdentifier("yt_authcancel", "string", packName)), Toast.LENGTH_SHORT).show();
 			if (authListener != null) {
 				authListener.onAuthCancel(AuthActivity.this);
 			}
@@ -628,7 +649,8 @@ public final class AuthActivity extends YtBaseActivity {
 
 		@Override
 		public void onWeiboException(WeiboException arg0) {
-			Toast.makeText(AuthActivity.this, "授权错误", Toast.LENGTH_SHORT).show();
+			//Toast.makeText(AuthActivity.this, "授权错误", Toast.LENGTH_SHORT).show();
+			Toast.makeText(AuthActivity.this,  res.getString(res.getIdentifier("yt_authfailed", "string", packName)), Toast.LENGTH_SHORT).show();
 			if (authListener != null) {
 				authListener.onAuthFail(AuthActivity.this);
 			}

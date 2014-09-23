@@ -12,6 +12,8 @@ import java.net.URLConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import cn.bidaround.point.YtLog;
+import cn.bidaround.ytcore.YtCore;
+
 /**
  * 下载图片
  * @author youtui
@@ -44,22 +46,30 @@ public class DownloadImage {
 	 * @throws IOException
 	 */
 	public static void down_file(String url, String path, String filename) throws IOException {
-		YtLog.i(TAG, "start down shared image");
+		//YtLog.i(TAG, "start down shared image");
 		URL myURL = new URL(url);
 		URLConnection conn = myURL.openConnection();
 		conn.connect();
 		InputStream is = conn.getInputStream();
 		int fileSize = conn.getContentLength();// 根据响应获取文件大小
-		if (fileSize <= 0)
-			throw new RuntimeException("无法获知文件大小 ");
-		if (is == null)
+		if (fileSize <= 0) {
+			//YtLog.e(TAG, "无法获知文件大小");
+			//throw new RuntimeException("无法获知文件大小 ");
+			throw new RuntimeException(YtCore.res.getString(YtCore.res.getIdentifier("yt_unknownfilesize", "string", YtCore.packName)));
+		}
+
+		if (is == null) {
+			YtLog.e(TAG, "stream is null");
 			throw new RuntimeException("stream is null");
+		}
 		FileUtils util = new FileUtils();
 		util.creatSDDir(path);
 		File file = util.creatSDFile(path + filename);// 保存的文件名
+		//YtLog.e(TAG, "creatSDFile");
 		@SuppressWarnings("resource")
 		FileOutputStream fos = new FileOutputStream(file);
-
+		
+		//YtLog.e(TAG, "FileOutputStream");
 		// 把数据存入路径+文件名
 		byte buf[] = new byte[1024];
 		do {
@@ -71,7 +81,7 @@ public class DownloadImage {
 			fos.write(buf, 0, numread);
 		} while (true);
 		is.close();
-		YtLog.i(TAG, "down shared image complete");
+		//YtLog.i(TAG, "down shared image complete");
 	}
 
 }

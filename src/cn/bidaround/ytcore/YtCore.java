@@ -1,6 +1,7 @@
 package cn.bidaround.ytcore;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -26,6 +27,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
@@ -36,6 +39,7 @@ import cn.bidaround.point.YoutuiConstants;
 import cn.bidaround.point.YtLog;
 import cn.bidaround.point.YtPoint;
 import cn.bidaround.ytcore.activity.ShareActivity;
+import cn.bidaround.ytcore.dao.YtCoreDao;
 import cn.bidaround.ytcore.data.KeyInfo;
 import cn.bidaround.ytcore.data.ShareData;
 import cn.bidaround.ytcore.data.YtPlatform;
@@ -51,6 +55,8 @@ import cn.bidaround.ytcore.util.CMyEncrypt;
 import cn.bidaround.ytcore.util.DownloadImage;
 import cn.bidaround.ytcore.util.Util;
 import cn.bidaround.ytcore.wxapi.WXEntryActivity;
+import com.tencent.mm.sdk.openapi.IWXAPI;
+import com.tencent.mm.sdk.openapi.WXAPIFactory;
 
 /**
  * 友推分享操作类
@@ -90,6 +96,9 @@ public class YtCore {
 	/** 活动id */
 	private String appActivityId;
 	private static String targetUrl;
+	private static IWXAPI mIWXAPI;
+	private static int statisticsType = 1;
+	private static String linkUrl;
 	/** 处理获取待分享信息后的操作,获取到待分享信息就进行分享,没有获取到待分享信息则提醒用户 */
 	public Handler mHandler = new Handler() {
 		public void handleMessage(android.os.Message msg) {
@@ -102,7 +111,9 @@ public class YtCore {
 				break;
 			// 获取应用分享信息失败,提醒用户
 			case GET_APPSHAREDATA_FAIL:
-				Toast.makeText(appContext, "获取分享内容失败...", Toast.LENGTH_SHORT).show();
+				// Toast.makeText(appContext, "获取分享内容失败...",
+				// Toast.LENGTH_SHORT).show();
+				Toast.makeText(appContext, res.getString(res.getIdentifier("yt_getsharecontent_fail", "string", packName)), Toast.LENGTH_SHORT).show();
 				break;
 			// 获取内容分享信息成功,进行分享操作
 			case GET_CONTENTSHAREDATA_SUCCESS:
@@ -111,7 +122,9 @@ public class YtCore {
 				break;
 			// 获取内容分享信息失败,提醒用户
 			case GET_CONTENTSHAREDATA_FAIL:
-				Toast.makeText(appContext, "获取分享内容失败...", Toast.LENGTH_SHORT).show();
+				// Toast.makeText(appContext, "获取分享内容失败...",
+				// Toast.LENGTH_SHORT).show();
+				Toast.makeText(appContext, res.getString(res.getIdentifier("yt_getsharecontent_fail", "string", packName)), Toast.LENGTH_SHORT).show();
 				break;
 
 			default:
@@ -163,9 +176,12 @@ public class YtCore {
 		shareData.setText(oriData.getText());
 		shareData.setTitle(oriData.getTitle());
 		shareData.setShareType(oriData.getShareType());
+		shareData.setMusicUrl(oriData.getMusicUrl());
+		shareData.setVideoUrl(oriData.getVideoUrl());
 
 		String shortUrl = null;
 		final String realUrl = shareData.getTarget_url();
+
 		if (!shareData.isAppShare && shareData.getTarget_url() != null && !shareData.getTarget_url().equals("")) {
 			shortUrl = CMyEncrypt.shortUrl(shareData.getTarget_url())[0];
 			// 如果不是截屏，复制链接等平台，发送真实url和短链接
@@ -173,6 +189,7 @@ public class YtCore {
 				sendUrl(KeyInfo.youTui_AppKey, platform.getChannleId(), shareData.getTarget_url(), !shareData.isAppShare, shortUrl);
 			}
 		}
+
 		// 处理url
 		if (shareData != null && shareData.getTarget_url() != null) {
 			dealWithUrl(platform.getChannleId(), shortUrl, shareData);
@@ -195,7 +212,8 @@ public class YtCore {
 					e.printStackTrace();
 				}
 			} else {
-				Toast.makeText(act, "未安装微信。。。", Toast.LENGTH_SHORT).show();
+				// Toast.makeText(act, "未安装微信。。。", Toast.LENGTH_SHORT).show();
+				Toast.makeText(act, res.getString(res.getIdentifier("yt_nowechatclient", "string", packName)), Toast.LENGTH_SHORT).show();
 			}
 
 		} else if (platform == YtPlatform.PLATFORM_EMAIL) {
@@ -236,12 +254,16 @@ public class YtCore {
 
 					@Override
 					public void onAuthFail(Activity act) {
-						Toast.makeText(act, "授权失败...", Toast.LENGTH_SHORT).show();
+						// Toast.makeText(act, "授权失败...",
+						// Toast.LENGTH_SHORT).show();
+						Toast.makeText(act, res.getString(res.getIdentifier("yt_authfailed", "string", packName)), Toast.LENGTH_SHORT).show();
 					}
 
 					@Override
 					public void onAuthCancel(Activity act) {
-						Toast.makeText(act, "授权取消...", Toast.LENGTH_SHORT).show();
+						// Toast.makeText(act, "授权取消...",
+						// Toast.LENGTH_SHORT).show();
+						Toast.makeText(act, res.getString(res.getIdentifier("yt_authcancel", "string", packName)), Toast.LENGTH_SHORT).show();
 					}
 				};
 
@@ -268,7 +290,8 @@ public class YtCore {
 				ShareActivity.shareData = shareData;
 				act.startActivity(it);
 			} else {
-				Toast.makeText(act, "未安装QQ。。。", Toast.LENGTH_SHORT).show();
+				// Toast.makeText(act, "未安装QQ。。。", Toast.LENGTH_SHORT).show();
+				Toast.makeText(act, res.getString(res.getIdentifier("yt_noqqclient", "string", packName)), Toast.LENGTH_SHORT).show();
 			}
 
 		} else if (platform == YtPlatform.PLATFORM_SINAWEIBO) {
@@ -295,6 +318,10 @@ public class YtCore {
 					// 调用新浪客户端进行分享
 					if (AccessTokenKeeper.readAccessToken(appContext).isSessionValid()) {
 						// 有授权的话直接分享
+
+						// Toast.makeText(act,
+						// "有授权"+AccessTokenKeeper.readAccessToken(appContext).getToken(),
+						// Toast.LENGTH_SHORT).show();
 						Intent it = new Intent(act, ShareActivity.class);
 						ShareActivity.listener = listener;
 						it.putExtra("platform", platform);
@@ -303,6 +330,8 @@ public class YtCore {
 						ShareActivity.shareData = shareData;
 						act.startActivity(it);
 					} else {
+						// Toast.makeText(act, "无授权",
+						// Toast.LENGTH_SHORT).show();
 						// 没有授权的话先进项授权
 						ShareActivity.shareData = shareData;
 						ShareActivity.listener = listener;
@@ -359,7 +388,8 @@ public class YtCore {
 				ShareActivity.shareData = shareData;
 				act.startActivity(it);
 			} else {
-				Toast.makeText(act, "未安装人人网。。。", Toast.LENGTH_SHORT).show();
+				// Toast.makeText(act, "未安装人人网。。。", Toast.LENGTH_SHORT).show();
+				Toast.makeText(act, res.getString(res.getIdentifier("yt_norennclient", "string", packName)), Toast.LENGTH_SHORT).show();
 			}
 		} else if (platform == YtPlatform.PLATFORM_COPYLINK) {
 			// 复制链接
@@ -376,25 +406,65 @@ public class YtCore {
 			getAppShareData(shareData);
 		} else {
 			// 如果是内容分享，设置了网络图片而没有设置本地图片，则下载到本地再进行分享
-			if (shareData.getImageUrl() != null && shareData.getImagePath() == null) {
-				String picPath = shareData.getImageUrl().substring(shareData.getImageUrl().lastIndexOf("/") + 1, shareData.getImageUrl().length());
-				try {
-					DownloadImage.down_file(shareData.getImageUrl(), YoutuiConstants.FILE_SAVE_PATH, picPath);
-					shareData.setImagePath(Environment.getExternalStorageDirectory() + YoutuiConstants.FILE_SAVE_PATH + picPath);
-				} catch (IOException e) {
-					mHandler.sendEmptyMessage(GET_CONTENTSHAREDATA_FAIL);
-					e.printStackTrace();
-					return;
+			if (shareData.getShareType() == ShareData.SHARETYPE_IMAGE || shareData.getShareType() == ShareData.SHARETYPE_IMAGEANDTEXT || shareData.getShareType() == ShareData.SHARETYPE_MUSIC || shareData.getShareType() == ShareData.SHARETYPE_VIDEO) {
+				if (shareData.getImageType() == ShareData.IMAGETYPE_INTERNET || shareData.getImageType() == ShareData.IMAGETYPE_SDCARD||shareData.getImageType()==0) {
+					if (shareData.getImageUrl() != null && shareData.getImagePath() == null) {
+						String picPath = null;
+						if (shareData.getImageUrl().endsWith(".png")) {
+							picPath = CMyEncrypt.shortUrl(shareData.getImageUrl())[0] + ".png";
+						} else if (shareData.getImageUrl().endsWith(".jpg")) {
+							picPath = CMyEncrypt.shortUrl(shareData.getImageUrl())[0] + ".jpg";
+						} else {
+							picPath = CMyEncrypt.shortUrl(shareData.getImageUrl())[0];
+						}
+						// 如果是图片分享，需要先将图片存放到本地sd卡
+						try {
+							DownloadImage.down_file(shareData.getImageUrl(), YoutuiConstants.FILE_SAVE_PATH, picPath);
+							shareData.setImagePath(Environment.getExternalStorageDirectory() + YoutuiConstants.FILE_SAVE_PATH + picPath);
+						} catch (IOException e) {
+							mHandler.sendEmptyMessage(GET_CONTENTSHAREDATA_FAIL);
+							e.printStackTrace();
+							return;
+						}
+					}
+				} else if (shareData.getImageType() == ShareData.IMAGETYPE_APPRESOURE) {
+					Bitmap bit = BitmapFactory.decodeResource(res, Integer.valueOf(shareData.getImage()));
+					String savePath = getSDCardPath() + "/youtui";
+					try {
+						File path = new File(savePath);
+						// 文件
+						String filepath = savePath + "/"+shareData.getImage()+".png";
+						File file = new File(filepath);
+						if (!path.exists()) {
+							path.mkdirs();
+						}
+						if (!file.exists()) {
+							file.createNewFile();
+						}
+						FileOutputStream fos = null;
+						fos = new FileOutputStream(file);
+						if (null != fos) {
+							bit.compress(Bitmap.CompressFormat.PNG, 90, fos);
+							fos.flush();
+							fos.close();
+						}
+						shareData.setImagePath(filepath);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					
 				}
-			}
 
-			if (shareData.getImagePath() != null && !shareData.getImagePath().equals("")) {
+				if (shareData.getImagePath() != null && !shareData.getImagePath().equals("")) {
+					Message msg = Message.obtain(mHandler, GET_CONTENTSHAREDATA_SUCCESS, shareData);
+					mHandler.sendMessage(msg);
+				} else {
+					mHandler.sendEmptyMessage(GET_CONTENTSHAREDATA_FAIL);
+				}
+			} else if (shareData.getShareType() == ShareData.SHARETYPE_TEXT) {
 				Message msg = Message.obtain(mHandler, GET_CONTENTSHAREDATA_SUCCESS, shareData);
 				mHandler.sendMessage(msg);
-			} else {
-				mHandler.sendEmptyMessage(GET_CONTENTSHAREDATA_FAIL);
 			}
-
 		}
 	}
 
@@ -436,7 +506,15 @@ public class YtCore {
 			// object.getString("hasProgressingPopAct"));
 			// 下载Logo图片以便于后续分享
 			if (shareData.getImageUrl() != null) {
-				String picPath = shareData.getImageUrl().substring(shareData.getImageUrl().lastIndexOf("/") + 1, shareData.getImageUrl().length());
+				String picPath = null;
+				if (shareData.getImageUrl().endsWith(".png")) {
+					picPath = CMyEncrypt.shortUrl(shareData.getImageUrl())[0] + ".png";
+				} else if (shareData.getImageUrl().endsWith(".jpg")) {
+					picPath = CMyEncrypt.shortUrl(shareData.getImageUrl())[0] + ".jpg";
+				} else {
+					picPath = CMyEncrypt.shortUrl(shareData.getImageUrl())[0];
+				}
+
 				DownloadImage.down_file(shareData.getImageUrl(), YoutuiConstants.FILE_SAVE_PATH, picPath);
 				shareData.setImagePath(Environment.getExternalStorageDirectory() + YoutuiConstants.FILE_SAVE_PATH + picPath);
 				// YtLog.i("YtCore:" + "网络图片保存到本地的路径",
@@ -465,8 +543,8 @@ public class YtCore {
 		return true;
 	}
 
-	/** ytcore初始化操作 */
-	public static void init(final Activity act) {
+	/** ytcore初始化操作,有用户id */
+	public static void init(final Activity act, final String appUserId) {
 		// 读取手机信息
 		getPhoneInfo(act);
 
@@ -474,24 +552,95 @@ public class YtCore {
 		try {
 			KeyInfo.parseXML(act);
 		} catch (IOException e) {
-			YtLog.e("YtCore:", "解析youtui_sdk.xml错误,请正确填写");
+			YtLog.e("YtCore:", "youtui_sdk.xml error");
 			e.printStackTrace();
 		} catch (XmlPullParserException e) {
-			YtLog.e("YtCore:", "解析youtui_sdk.xml错误,请正确填写");
+			YtLog.e("YtCore:", "youtui_sdk.xml error");
 			e.printStackTrace();
+		}
+
+		if (KeyInfo.wechatMoments_AppId != null && !"".equals(KeyInfo.wechatMoments_AppId)) {
+			mIWXAPI = WXAPIFactory.createWXAPI(act, KeyInfo.wechatMoments_AppId, false);
+			mIWXAPI.registerApp(KeyInfo.wechatMoments_AppId);
+		} else if (KeyInfo.wechat_AppId != null && !"".equals(KeyInfo.wechat_AppId)) {
+			mIWXAPI = WXAPIFactory.createWXAPI(act, KeyInfo.wechat_AppId, false);
+			mIWXAPI.registerApp(KeyInfo.wechat_AppId);
+		}
+		// 初始化积分组件
+		new Thread() {
+			@Override
+			public void run() {
+				YtPoint.init(act, KeyInfo.youTui_AppKey, appUserId);
+			}
+		}.start();
+
+		getStatisticsType();
+		// 创建youtui对象
+		if (yt == null) {
+			yt = new YtCore();
+		}
+	}
+
+	private static void getStatisticsType() {
+		new Thread() {
+			@Override
+			public void run() {
+				try {
+					String response = YtCoreDao.getLinkType();
+					if(response!=null){
+						JSONObject json = new JSONObject(response);
+						JSONObject object = json.getJSONObject("object");
+						statisticsType = object.getInt("statisticsType");
+						if (statisticsType == 2) {
+							linkUrl = object.getString("linkUrl");
+						}
+					}
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+		}.start();
+	}
+
+	/** ytcore初始化操作 */
+	public static void init(final Activity act) {
+		// 读取手机信息
+		getPhoneInfo(act);
+		// 读取youtui_sdk.xml配置
+		try {
+			KeyInfo.parseXML(act);
+		} catch (IOException e) {
+			YtLog.e("YtCore:", "youtui_sdk.xml error");
+			e.printStackTrace();
+		} catch (XmlPullParserException e) {
+			YtLog.e("YtCore:", "youtui_sdk.xml error");
+			e.printStackTrace();
+		}
+
+		if (KeyInfo.wechatMoments_AppId != null && !"".equals(KeyInfo.wechatMoments_AppId)) {
+			mIWXAPI = WXAPIFactory.createWXAPI(act, KeyInfo.wechatMoments_AppId, false);
+			mIWXAPI.registerApp(KeyInfo.wechatMoments_AppId);
+		} else if (KeyInfo.wechat_AppId != null && !"".equals(KeyInfo.wechat_AppId)) {
+			mIWXAPI = WXAPIFactory.createWXAPI(act, KeyInfo.wechat_AppId, false);
+			mIWXAPI.registerApp(KeyInfo.wechat_AppId);
 		}
 
 		// 初始化积分组件
 		new Thread() {
 			@Override
 			public void run() {
-				YtPoint.init(act, KeyInfo.youTui_AppKey);
+				YtPoint.init(act, KeyInfo.youTui_AppKey, null);
 			}
 		}.start();
+		getStatisticsType();
 		// 创建youtui对象
 		if (yt == null) {
 			yt = new YtCore();
 		}
+
+		// IntentFilter filer = new IntentFilter(action);
+		// act.registerReceiver(receiver, filter);
+
 	}
 
 	/** 设置是否输出YtLog信息,开发时输出有助于定位错误,正式打包时请关闭输出 */
@@ -564,7 +713,7 @@ public class YtCore {
 	}
 
 	/**
-	 * 处理链接
+	 * 处理分享链接,这样分享的链接才能被统计
 	 * 
 	 * @param channelId
 	 * @param shortUrl
@@ -574,9 +723,21 @@ public class YtCore {
 			// 如果应用分享并且没有活动进行，使用拼接连接
 			String url = "http://youtui.mobi/i/" + appActivityId + "/" + KeyInfo.youTui_AppKey + "/" + appRecommenderId + channelId;
 			shareData.setTarget_url(url);
-		} else if (!shareData.isAppShare) {
+		} else if (!shareData.isAppShare && shareData.getTarget_url() != null && !"".equals(shareData.getTarget_url())) {
+			// YtLog.d("dealWithUrl", statisticsType+"");
 			// 如果是分享内容
-			shareData.setTarget_url(YoutuiConstants.YOUTUI_LINK_URL + shortUrl);
+			if (statisticsType == 1 || statisticsType == 0) {
+				shareData.setTarget_url(YoutuiConstants.YOUTUI_LINK_URL + shortUrl);
+			} else if (statisticsType == 2) {
+				shareData.setTarget_url(linkUrl + shortUrl);
+			} else if (statisticsType == 3) {
+				String url = shareData.getTarget_url();
+				if (url.contains("?")) {
+					shareData.setTarget_url(url + "&youtui=" + shortUrl);
+				} else {
+					shareData.setTarget_url(url + "?youtui=" + shortUrl);
+				}
+			}
 		}
 	}
 
@@ -598,10 +759,12 @@ public class YtCore {
 	/** 释放内存和统计应用使用情况 */
 	public static void release(Context context) {
 		YtPoint.release(context);
+		mIWXAPI = null;
+		ShareData.instance = null;
 	}
 
-	public static String getTargetUrl() {	
-		new Thread(){
+	public static String getTargetUrl() {
+		new Thread() {
 			@Override
 			public void run() {
 				HttpParams httpParam = new BasicHttpParams();
@@ -639,5 +802,20 @@ public class YtCore {
 			}
 		}.start();
 		return targetUrl;
+	}
+	
+	/**
+	 * 获取SDCard的目录路径功能
+	 * 
+	 * @return
+	 */
+	public static String getSDCardPath() {
+		File sdcardDir = null;
+		// 判断SDCard是否存在
+		boolean sdcardExist = Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
+		if (sdcardExist) {
+			sdcardDir = Environment.getExternalStorageDirectory();
+		}
+		return sdcardDir.toString();
 	}
 }

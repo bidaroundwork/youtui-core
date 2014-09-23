@@ -53,17 +53,21 @@ public class Util {
 					android.content.ClipboardManager clip = (android.content.ClipboardManager) act.getSystemService(Context.CLIPBOARD_SERVICE);
 					clip.setPrimaryClip(android.content.ClipData.newPlainText("link", message));
 					if (clip.hasPrimaryClip()) {
-						Toast.makeText(act, "复制成功", Toast.LENGTH_SHORT).show();
+						//Toast.makeText(act, "复制成功", Toast.LENGTH_SHORT).show();
+						Toast.makeText(act,act.getResources().getString(act.getResources().getIdentifier("yt_copysuccess", "string", act.getPackageName())), Toast.LENGTH_SHORT).show();
 					} else {
-						Toast.makeText(act, "复制失败，请手动复制", Toast.LENGTH_SHORT).show();
+						//Toast.makeText(act, "复制失败，请手动复制", Toast.LENGTH_SHORT).show();
+						Toast.makeText(act,act.getResources().getString(act.getResources().getIdentifier("yt_copyfail", "string", act.getPackageName())), Toast.LENGTH_SHORT).show();
 					}
 				} else {
 					android.text.ClipboardManager clip = (android.text.ClipboardManager) act.getSystemService(Context.CLIPBOARD_SERVICE);
 					clip.setText(message);
 					if (clip.hasText()) {
-						Toast.makeText(act, "复制成功", Toast.LENGTH_SHORT).show();
+						//Toast.makeText(act, "复制成功", Toast.LENGTH_SHORT).show();
+						Toast.makeText(act,act.getResources().getString(act.getResources().getIdentifier("yt_copysuccess", "string", act.getPackageName())), Toast.LENGTH_SHORT).show();
 					} else {
-						Toast.makeText(act, "复制失败，请手动复制", Toast.LENGTH_SHORT).show();
+						//Toast.makeText(act, "复制失败，请手动复制", Toast.LENGTH_SHORT).show();
+						Toast.makeText(act,act.getResources().getString(act.getResources().getIdentifier("yt_copyfail", "string", act.getPackageName())), Toast.LENGTH_SHORT).show();
 					}
 				}
 			}

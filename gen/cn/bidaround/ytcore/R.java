@@ -11,7 +11,35 @@ public final class R {
     public static final class attr {
     }
     public static final class string {
-        public static int app_name=0x7f020000;
+        public static int yt_authcancel=0x7f020003;
+        public static int yt_authfailed=0x7f020002;
+        public static int yt_authing=0x7f020013;
+        public static int yt_authsuccess=0x7f020012;
+        public static int yt_chooseemail=0x7f020017;
+        public static int yt_connecterror=0x7f020006;
+        public static int yt_copyfail=0x7f02001c;
+        public static int yt_copysuccess=0x7f02001b;
+        public static int yt_description=0x7f02000d;
+        public static int yt_getsharecontent_fail=0x7f020000;
+        public static int yt_loading=0x7f020011;
+        public static int yt_logincancel=0x7f020018;
+        public static int yt_loginsuccess=0x7f020019;
+        public static int yt_man=0x7f02000f;
+        public static int yt_nonetwork=0x7f020015;
+        public static int yt_nopic=0x7f020007;
+        public static int yt_noqqclient=0x7f020004;
+        public static int yt_norennclient=0x7f020005;
+        public static int yt_nowechatclient=0x7f020001;
+        public static int yt_reauth=0x7f02000b;
+        public static int yt_reconnect=0x7f020014;
+        public static int yt_renn=0x7f02000a;
+        public static int yt_share=0x7f02000e;
+        public static int yt_shareing=0x7f02000c;
+        public static int yt_sharepic=0x7f020016;
+        public static int yt_sinaweibo=0x7f020008;
+        public static int yt_teccentweibo=0x7f020009;
+        public static int yt_unknownfilesize=0x7f02001a;
+        public static int yt_woman=0x7f020010;
     }
     public static final class style {
         /** 

@@ -23,6 +23,13 @@ public class AuthUserInfo {
 	private String qqNickName;
 	/**qq用户openid*/
 	private String qqOpenid;
+	
+	/**qq授权返回的字符串*/
+	private String qqAuthResponse;
+	
+	/**qq获取用户信息返回字符串*/
+	private String qqUserInfoResponse;
+	
 	/**腾讯微博用户名*/
 	private String tencentWbName;
 	/**腾讯微博用户昵称*/
@@ -144,5 +151,17 @@ public class AuthUserInfo {
 	/**设置腾讯微博用户性别*/
 	public void setTencentWbGender(String tencentWbGender) {
 		this.tencentWbGender = tencentWbGender;
+	}
+	public String getQqAuthResponse() {
+		return qqAuthResponse;
+	}
+	public void setQqAuthResponse(String qqAuthResponse) {
+		this.qqAuthResponse = qqAuthResponse;
+	}
+	public String getQqUserInfoResponse() {
+		return qqUserInfoResponse;
+	}
+	public void setQqUserInfoResponse(String qqUserInfoResponse) {
+		this.qqUserInfoResponse = qqUserInfoResponse;
 	}
 }

@@ -9,8 +9,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.Toast;
 import cn.bidaround.point.YoutuiConstants;
 import cn.bidaround.ytcore.YtCore;
 import cn.bidaround.ytcore.activity.ShareActivity;
@@ -20,7 +18,9 @@ import cn.bidaround.ytcore.data.YtPlatform;
 import cn.bidaround.ytcore.util.AccessTokenKeeper;
 
 import com.sina.weibo.sdk.api.ImageObject;
+import com.sina.weibo.sdk.api.MusicObject;
 import com.sina.weibo.sdk.api.TextObject;
+import com.sina.weibo.sdk.api.VideoObject;
 import com.sina.weibo.sdk.api.WeiboMessage;
 import com.sina.weibo.sdk.api.WeiboMultiMessage;
 import com.sina.weibo.sdk.api.share.IWeiboShareAPI;
@@ -32,6 +32,7 @@ import com.sina.weibo.sdk.auth.WeiboAuth;
 import com.sina.weibo.sdk.auth.WeiboAuthListener;
 import com.sina.weibo.sdk.auth.sso.SsoHandler;
 import com.sina.weibo.sdk.exception.WeiboException;
+import com.sina.weibo.sdk.utils.Utility;
 
 /**
  * 新浪微博分享操作以及分享回调
@@ -71,7 +72,15 @@ public class SinaShare {
 			}else if(shareData.getShareType()==ShareData.SHARETYPE_IMAGE){
 				//如果是纯图分享
 				sendSingleMessage();
-			}			
+			}else if(shareData.getShareType()==ShareData.SHARETYPE_TEXT){
+				//纯文字分享
+				sendTextMessage();
+			}else if(shareData.getShareType()==ShareData.SHARETYPE_MUSIC){
+				//音乐分享
+				sendMusicMessage();
+			}else if(shareData.getShareType()==ShareData.SHARETYPE_VIDEO){
+				sendVideoMessage();
+			}
 		} else {
 			sendSingleMessage();
 		}
@@ -87,14 +96,14 @@ public class SinaShare {
 
 			@Override
 			public void onWeiboException(WeiboException arg0) {
-				Toast.makeText(activity, "授权错误", Toast.LENGTH_SHORT).show();
-				Log.e("--授权错误--", arg0.getMessage());
+				//Toast.makeText(activity, "授权错误", Toast.LENGTH_SHORT).show();
+				//Log.e("授权错误", arg0.getMessage());
 			}
 
 			@Override
 			public void onComplete(Bundle arg0) {
 				//Toast.makeText(activity, "授权成功", Toast.LENGTH_SHORT).show();
-				//Log.e("--授权成功--", arg0.toString());
+				//Log.e("授权成功", arg0.toString());
 				oauth2AccessToken = Oauth2AccessToken.parseAccessToken(arg0);
 				if (oauth2AccessToken.isSessionValid()) {
 					AccessTokenKeeper.writeAccessToken(activity, oauth2AccessToken);
@@ -109,8 +118,8 @@ public class SinaShare {
 
 			@Override
 			public void onCancel() {
-				Toast.makeText(activity, "授权取消", Toast.LENGTH_SHORT).show();
-				//Log.e("--授权取消--", "取消");
+				//Toast.makeText(activity, "授权取消", Toast.LENGTH_SHORT).show();
+				//Log.e("授权取消", "取消");
 			}
 		});
 	}
@@ -124,14 +133,14 @@ public class SinaShare {
 
 			@Override
 			public void onWeiboException(WeiboException arg0) {
-				Toast.makeText(activity, "授权错误", Toast.LENGTH_SHORT).show();
-				Log.e("--授权错误--", arg0.getMessage());
+				//Toast.makeText(activity, "授权错误", Toast.LENGTH_SHORT).show();
+				//Log.e("授权错误", arg0.getMessage());
 			}
 
 			@Override
 			public void onComplete(Bundle arg0) {
-				Toast.makeText(activity, "授权成功", Toast.LENGTH_SHORT).show();
-				Log.e("--授权成功--", arg0.toString());
+				//Toast.makeText(activity, "授权成功", Toast.LENGTH_SHORT).show();
+				//Log.e("授权成功", arg0.toString());
 				oauth2AccessToken = Oauth2AccessToken.parseAccessToken(arg0);
 				if (oauth2AccessToken.isSessionValid()) {
 					AccessTokenKeeper.writeAccessToken(activity, oauth2AccessToken);
@@ -146,8 +155,8 @@ public class SinaShare {
 
 			@Override
 			public void onCancel() {
-				Toast.makeText(activity, "授权取消", Toast.LENGTH_SHORT).show();
-				Log.e("--授权取消--", "取消");
+				//Toast.makeText(activity, "授权取消", Toast.LENGTH_SHORT).show();
+				//Log.e("授权取消", "取消");
 			}
 		});
 	}
@@ -178,7 +187,24 @@ public class SinaShare {
 		// 3. 发送请求消息到微博，唤起微博分享界面
 		return iWeiboShareAPI.sendRequest(request);
 	}
-
+	
+	/**
+	 * 分享纯文字
+	 * @return
+	 */
+	private boolean sendTextMessage() {
+		// 1. 初始化微博的分享消息
+		WeiboMessage weiboMessage = new WeiboMessage();
+		weiboMessage.mediaObject = getTextObject(shareData);
+		// 2. 初始化从第三方到微博的消息请求
+		SendMessageToWeiboRequest request = new SendMessageToWeiboRequest();
+		// 用transaction唯一标识一个请求
+		request.transaction = String.valueOf(System.currentTimeMillis());
+		request.message = weiboMessage;
+		// 3. 发送请求消息到微博，唤起微博分享界面
+		return iWeiboShareAPI.sendRequest(request);
+	}
+	
 	/**
 	 * 第三方应用发送请求消息到微博，唤起微博分享界面 > 10351 时，支持分享多条消息，该方法发送一条网页消息和一条图片消息
 	 */
@@ -195,6 +221,35 @@ public class SinaShare {
 		// 3. 发送请求消息到微博，唤起微博分享界面
 		iWeiboShareAPI.sendRequest(request);
 	}
+	
+	private boolean sendMusicMessage(){
+		// 1. 初始化微博的分享消息
+		WeiboMessage weiboMessage = new WeiboMessage();
+		weiboMessage.mediaObject = getMusicObj(shareData);
+		// 2. 初始化从第三方到微博的消息请求
+		SendMessageToWeiboRequest request = new SendMessageToWeiboRequest();
+		// 用transaction唯一标识一个请求
+		request.transaction = String.valueOf(System.currentTimeMillis());
+		request.message = weiboMessage;
+		// 3. 发送请求消息到微博，唤起微博分享界面
+		return iWeiboShareAPI.sendRequest(request);
+	}
+	
+	
+	private boolean sendVideoMessage(){
+		// 1. 初始化微博的分享消息
+		WeiboMessage weiboMessage = new WeiboMessage();
+		weiboMessage.mediaObject = getVideoObj(shareData);
+		// 2. 初始化从第三方到微博的消息请求
+		SendMessageToWeiboRequest request = new SendMessageToWeiboRequest();
+		// 用transaction唯一标识一个请求
+		request.transaction = String.valueOf(System.currentTimeMillis());
+		request.message = weiboMessage;
+		// 3. 发送请求消息到微博，唤起微博分享界面
+		return iWeiboShareAPI.sendRequest(request);
+	}
+	
+	
 
 	/**
 	 * 获得要分享的文字信息
@@ -213,9 +268,14 @@ public class SinaShare {
 			text += "...";
 		}
 		// YtLog.i("shareData.getTarget_url()", shareData.getTarget_url());
-		textObject.text = text + shareData.getTarget_url();
-		textObject.actionUrl = shareData.getTarget_url();
-
+		if(shareData.getTarget_url()!=null&&!"".equals(shareData.getTarget_url())&&!"null".equals(shareData.getTarget_url())){
+			//YtLog.e("getTarget_url not null", shareData.getTarget_url());
+			textObject.text = text + shareData.getTarget_url();
+			textObject.actionUrl = shareData.getTarget_url();
+		}else{
+			//YtLog.e("getTarget_url  null", shareData.getTarget_url());
+			textObject.text = text;
+		}
 		return textObject;
 	}
 
@@ -247,4 +307,73 @@ public class SinaShare {
 		image.description = shareData.getText();
 		return image;
 	}
+	/**
+	 * 获得要分享的音乐
+	 * @param shareData
+	 * @return
+	 */
+	private MusicObject getMusicObj(ShareData shareData){
+        // 创建媒体消息
+        MusicObject musicObject = new MusicObject();
+        musicObject.identify = Utility.generateGUID();
+        musicObject.title = shareData.getTitle();
+        musicObject.description = shareData.getDescription();
+        
+        // 设置 Bitmap 类型的图片到视频对象里
+        Bitmap bitmap = null;
+        Bitmap bmpThum = null;
+		if (shareData.getImagePath() != null) {
+			bitmap = BitmapFactory.decodeFile(shareData.getImagePath());
+		}
+		// bitmap为空时微信分享会没有响应，所以要设置一个默认图片让用户知道
+		if (bitmap != null) {
+			bmpThum = Bitmap.createScaledBitmap(bitmap, 150, 150, true);
+		} else {
+			bmpThum = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(activity.getResources(), YtCore.res.getIdentifier("yt_loadfail", "drawable", YtCore.packName)), 150, 150, true);
+		}
+        
+        musicObject.setThumbImage(bmpThum);
+        musicObject.actionUrl = shareData.getMusicUrl();
+        musicObject.dataUrl = shareData.getTarget_url();
+        musicObject.dataHdUrl = shareData.getTarget_url();
+        musicObject.duration = 10;
+        musicObject.defaultText = shareData.getText();
+		
+		return musicObject;
+	}
+	/**
+	 * 获得要分享的视频
+	 * @param shareData
+	 * @return
+	 */
+	private VideoObject getVideoObj(ShareData shareData){
+        // 创建媒体消息
+        VideoObject videoObject = new VideoObject();
+        videoObject.identify = Utility.generateGUID();
+        videoObject.title = shareData.getTitle();
+        videoObject.description = shareData.getText();
+        
+        // 设置 Bitmap 类型的图片到视频对象里
+        Bitmap bitmap = null;
+        Bitmap bmpThum = null;
+		if (shareData.getImagePath() != null) {
+			bitmap = BitmapFactory.decodeFile(shareData.getImagePath());
+		}
+		// bitmap为空时微信分享会没有响应，所以要设置一个默认图片让用户知道
+		if (bitmap != null) {
+			bmpThum = Bitmap.createScaledBitmap(bitmap, 150, 150, true);
+		} else {
+			bmpThum = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(activity.getResources(), YtCore.res.getIdentifier("yt_loadfail", "drawable", YtCore.packName)), 150, 150, true);
+		}
+        
+        videoObject.setThumbImage(bmpThum);
+        videoObject.actionUrl = shareData.getVideoUrl();
+        videoObject.dataUrl = shareData.getTarget_url();
+        videoObject.dataHdUrl = shareData.getTarget_url();
+        videoObject.duration = 10;
+        videoObject.defaultText = shareData.getText();
+		
+		return videoObject;
+	}
+	
 }
