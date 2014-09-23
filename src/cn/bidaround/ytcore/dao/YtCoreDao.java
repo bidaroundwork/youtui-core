@@ -49,7 +49,7 @@ public class YtCoreDao {
 			HttpResponse response = client.execute(post);
 			HttpEntity entity = response.getEntity();
 			str = EntityUtils.toString(entity);
-			YtLog.d("getLinkType", str);
+			//YtLog.d("getLinkType", str);
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (ClientProtocolException e) {

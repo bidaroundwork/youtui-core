@@ -141,8 +141,6 @@ public class QQOpenShare {
 				params.putInt(QQShare.SHARE_TO_QQ_EXT_INT, 0);
 			}
 			
-			
-			
 			mTencent.shareToQQ(act, params, new MyQQShareUIListener());
 		}
 	}

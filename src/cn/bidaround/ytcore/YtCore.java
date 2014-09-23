@@ -1,6 +1,7 @@
 package cn.bidaround.ytcore;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -26,6 +27,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
@@ -348,6 +351,7 @@ public class YtCore {
 							@Override
 							public void onAuthFail(Activity act) {
 							}
+
 							@Override
 							public void onAuthCancel(Activity act) {
 							}
@@ -402,18 +406,18 @@ public class YtCore {
 			getAppShareData(shareData);
 		} else {
 			// 如果是内容分享，设置了网络图片而没有设置本地图片，则下载到本地再进行分享
-			if(shareData.getShareType()==ShareData.SHARETYPE_IMAGE||shareData.getShareType()==ShareData.SHARETYPE_IMAGEANDTEXT
-					||shareData.getShareType()==ShareData.SHARETYPE_MUSIC||shareData.getShareType()==ShareData.SHARETYPE_VIDEO){
-				if (shareData.getImageUrl() != null && shareData.getImagePath() == null) {
-					String picPath = null;
-					if (shareData.getImageUrl().endsWith(".png")) {
-						picPath = CMyEncrypt.shortUrl(shareData.getImageUrl())[0] + ".png";
-					} else if (shareData.getImageUrl().endsWith(".jpg")) {
-						picPath = CMyEncrypt.shortUrl(shareData.getImageUrl())[0] + ".jpg";
-					} else {
-						picPath = CMyEncrypt.shortUrl(shareData.getImageUrl())[0];
-					}
-					//如果是图片分享，需要先将图片存放到本地sd卡
+			if (shareData.getShareType() == ShareData.SHARETYPE_IMAGE || shareData.getShareType() == ShareData.SHARETYPE_IMAGEANDTEXT || shareData.getShareType() == ShareData.SHARETYPE_MUSIC || shareData.getShareType() == ShareData.SHARETYPE_VIDEO) {
+				if (shareData.getImageType() == ShareData.IMAGETYPE_INTERNET || shareData.getImageType() == ShareData.IMAGETYPE_SDCARD||shareData.getImageType()==0) {
+					if (shareData.getImageUrl() != null && shareData.getImagePath() == null) {
+						String picPath = null;
+						if (shareData.getImageUrl().endsWith(".png")) {
+							picPath = CMyEncrypt.shortUrl(shareData.getImageUrl())[0] + ".png";
+						} else if (shareData.getImageUrl().endsWith(".jpg")) {
+							picPath = CMyEncrypt.shortUrl(shareData.getImageUrl())[0] + ".jpg";
+						} else {
+							picPath = CMyEncrypt.shortUrl(shareData.getImageUrl())[0];
+						}
+						// 如果是图片分享，需要先将图片存放到本地sd卡
 						try {
 							DownloadImage.down_file(shareData.getImageUrl(), YoutuiConstants.FILE_SAVE_PATH, picPath);
 							shareData.setImagePath(Environment.getExternalStorageDirectory() + YoutuiConstants.FILE_SAVE_PATH + picPath);
@@ -422,18 +426,42 @@ public class YtCore {
 							e.printStackTrace();
 							return;
 						}
+					}
+				} else if (shareData.getImageType() == ShareData.IMAGETYPE_APPRESOURE) {
+					Bitmap bit = BitmapFactory.decodeResource(res, Integer.valueOf(shareData.getImage()));
+					String savePath = getSDCardPath() + "/youtui";
+					try {
+						File path = new File(savePath);
+						// 文件
+						String filepath = savePath + "/"+shareData.getImage()+".png";
+						File file = new File(filepath);
+						if (!path.exists()) {
+							path.mkdirs();
+						}
+						if (!file.exists()) {
+							file.createNewFile();
+						}
+						FileOutputStream fos = null;
+						fos = new FileOutputStream(file);
+						if (null != fos) {
+							bit.compress(Bitmap.CompressFormat.PNG, 90, fos);
+							fos.flush();
+							fos.close();
+						}
+						shareData.setImagePath(filepath);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 					
-				}else if(shareData.getShareType()==ShareData.SHARETYPE_TEXT){
-					mHandler.sendEmptyMessage(GET_CONTENTSHAREDATA_SUCCESS);
 				}
-				
+
 				if (shareData.getImagePath() != null && !shareData.getImagePath().equals("")) {
 					Message msg = Message.obtain(mHandler, GET_CONTENTSHAREDATA_SUCCESS, shareData);
 					mHandler.sendMessage(msg);
 				} else {
 					mHandler.sendEmptyMessage(GET_CONTENTSHAREDATA_FAIL);
 				}
-			}else if(shareData.getShareType()==ShareData.SHARETYPE_TEXT){
+			} else if (shareData.getShareType() == ShareData.SHARETYPE_TEXT) {
 				Message msg = Message.obtain(mHandler, GET_CONTENTSHAREDATA_SUCCESS, shareData);
 				mHandler.sendMessage(msg);
 			}
@@ -545,25 +573,27 @@ public class YtCore {
 				YtPoint.init(act, KeyInfo.youTui_AppKey, appUserId);
 			}
 		}.start();
-		
+
 		getStatisticsType();
 		// 创建youtui对象
 		if (yt == null) {
 			yt = new YtCore();
 		}
 	}
-	
-	private static void getStatisticsType(){
+
+	private static void getStatisticsType() {
 		new Thread() {
 			@Override
 			public void run() {
 				try {
 					String response = YtCoreDao.getLinkType();
-					JSONObject json = new JSONObject(response);
-					JSONObject object = json.getJSONObject("object");
-					statisticsType = object.getInt("statisticsType");
-					if(statisticsType==2){
-						linkUrl = object.getString("linkUrl");
+					if(response!=null){
+						JSONObject json = new JSONObject(response);
+						JSONObject object = json.getJSONObject("object");
+						statisticsType = object.getInt("statisticsType");
+						if (statisticsType == 2) {
+							linkUrl = object.getString("linkUrl");
+						}
 					}
 				} catch (JSONException e) {
 					e.printStackTrace();
@@ -571,7 +601,6 @@ public class YtCore {
 			}
 		}.start();
 	}
-	
 
 	/** ytcore初始化操作 */
 	public static void init(final Activity act) {
@@ -684,7 +713,7 @@ public class YtCore {
 	}
 
 	/**
-	 * 处理链接
+	 * 处理分享链接,这样分享的链接才能被统计
 	 * 
 	 * @param channelId
 	 * @param shortUrl
@@ -695,12 +724,19 @@ public class YtCore {
 			String url = "http://youtui.mobi/i/" + appActivityId + "/" + KeyInfo.youTui_AppKey + "/" + appRecommenderId + channelId;
 			shareData.setTarget_url(url);
 		} else if (!shareData.isAppShare && shareData.getTarget_url() != null && !"".equals(shareData.getTarget_url())) {
+			// YtLog.d("dealWithUrl", statisticsType+"");
 			// 如果是分享内容
-			if(statisticsType==1){
+			if (statisticsType == 1 || statisticsType == 0) {
 				shareData.setTarget_url(YoutuiConstants.YOUTUI_LINK_URL + shortUrl);
-			}else if(statisticsType==2){
-				shareData.setTarget_url(linkUrl+shortUrl);
-			}else if(statisticsType==3){
+			} else if (statisticsType == 2) {
+				shareData.setTarget_url(linkUrl + shortUrl);
+			} else if (statisticsType == 3) {
+				String url = shareData.getTarget_url();
+				if (url.contains("?")) {
+					shareData.setTarget_url(url + "&youtui=" + shortUrl);
+				} else {
+					shareData.setTarget_url(url + "?youtui=" + shortUrl);
+				}
 			}
 		}
 	}
@@ -766,5 +802,20 @@ public class YtCore {
 			}
 		}.start();
 		return targetUrl;
+	}
+	
+	/**
+	 * 获取SDCard的目录路径功能
+	 * 
+	 * @return
+	 */
+	public static String getSDCardPath() {
+		File sdcardDir = null;
+		// 判断SDCard是否存在
+		boolean sdcardExist = Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
+		if (sdcardExist) {
+			sdcardDir = Environment.getExternalStorageDirectory();
+		}
+		return sdcardDir.toString();
 	}
 }
