@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
+import android.content.res.Resources.NotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import cn.bidaround.point.YtLog;
@@ -42,10 +43,10 @@ public class DownloadImage {
 
 	/**
 	 * 下载文件功能
-	 * 
-	 * @throws IOException
+	 * @throws Exception 
+	 * @throws NotFoundException 
 	 */
-	public static void down_file(String url, String path, String filename) throws IOException {
+	public static void down_file(String url, String path, String filename) throws NotFoundException, Exception {
 		//YtLog.i(TAG, "start down shared image");
 		URL myURL = new URL(url);
 		URLConnection conn = myURL.openConnection();
@@ -55,12 +56,12 @@ public class DownloadImage {
 		if (fileSize <= 0) {
 			//YtLog.e(TAG, "无法获知文件大小");
 			//throw new RuntimeException("无法获知文件大小 ");
-			throw new RuntimeException(YtCore.res.getString(YtCore.res.getIdentifier("yt_unknownfilesize", "string", YtCore.packName)));
+			throw new Exception(YtCore.res.getString(YtCore.res.getIdentifier("yt_unknownfilesize", "string", YtCore.packName)));
 		}
 
 		if (is == null) {
 			YtLog.e(TAG, "stream is null");
-			throw new RuntimeException("stream is null");
+			throw new Exception("stream is null");
 		}
 		FileUtils util = new FileUtils();
 		util.creatSDDir(path);

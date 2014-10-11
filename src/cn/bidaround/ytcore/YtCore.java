@@ -27,6 +27,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.content.res.Resources.NotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -407,7 +408,7 @@ public class YtCore {
 		} else {
 			// 如果是内容分享，设置了网络图片而没有设置本地图片，则下载到本地再进行分享
 			if (shareData.getShareType() == ShareData.SHARETYPE_IMAGE || shareData.getShareType() == ShareData.SHARETYPE_IMAGEANDTEXT || shareData.getShareType() == ShareData.SHARETYPE_MUSIC || shareData.getShareType() == ShareData.SHARETYPE_VIDEO) {
-				if (shareData.getImageType() == ShareData.IMAGETYPE_INTERNET || shareData.getImageType() == ShareData.IMAGETYPE_SDCARD||shareData.getImageType()==0) {
+				if (shareData.getImageType() == ShareData.IMAGETYPE_INTERNET || shareData.getImageType() == ShareData.IMAGETYPE_SDCARD || shareData.getImageType() == 0) {
 					if (shareData.getImageUrl() != null && shareData.getImagePath() == null) {
 						String picPath = null;
 						if (shareData.getImageUrl().endsWith(".png")) {
@@ -421,7 +422,7 @@ public class YtCore {
 						try {
 							DownloadImage.down_file(shareData.getImageUrl(), YoutuiConstants.FILE_SAVE_PATH, picPath);
 							shareData.setImagePath(Environment.getExternalStorageDirectory() + YoutuiConstants.FILE_SAVE_PATH + picPath);
-						} catch (IOException e) {
+						} catch (Exception e) {
 							mHandler.sendEmptyMessage(GET_CONTENTSHAREDATA_FAIL);
 							e.printStackTrace();
 							return;
@@ -433,7 +434,7 @@ public class YtCore {
 					try {
 						File path = new File(savePath);
 						// 文件
-						String filepath = savePath + "/"+shareData.getImage()+".png";
+						String filepath = savePath + "/" + shareData.getImage() + ".png";
 						File file = new File(filepath);
 						if (!path.exists()) {
 							path.mkdirs();
@@ -452,7 +453,7 @@ public class YtCore {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-					
+
 				}
 
 				if (shareData.getImagePath() != null && !shareData.getImagePath().equals("")) {
@@ -520,19 +521,7 @@ public class YtCore {
 				// YtLog.i("YtCore:" + "网络图片保存到本地的路径",
 				// shareData.getImagePath());
 			}
-		} catch (UnsupportedEncodingException e) {
-			mHandler.sendEmptyMessage(GET_APPSHAREDATA_FAIL);
-			e.printStackTrace();
-			return false;
-		} catch (ClientProtocolException e) {
-			mHandler.sendEmptyMessage(GET_APPSHAREDATA_FAIL);
-			e.printStackTrace();
-			return false;
-		} catch (IOException e) {
-			mHandler.sendEmptyMessage(GET_APPSHAREDATA_FAIL);
-			e.printStackTrace();
-			return false;
-		} catch (JSONException e) {
+		} catch (Exception e) {
 			mHandler.sendEmptyMessage(GET_APPSHAREDATA_FAIL);
 			e.printStackTrace();
 			return false;
@@ -587,7 +576,7 @@ public class YtCore {
 			public void run() {
 				try {
 					String response = YtCoreDao.getLinkType();
-					if(response!=null){
+					if (response != null) {
 						JSONObject json = new JSONObject(response);
 						JSONObject object = json.getJSONObject("object");
 						statisticsType = object.getInt("statisticsType");
@@ -803,7 +792,7 @@ public class YtCore {
 		}.start();
 		return targetUrl;
 	}
-	
+
 	/**
 	 * 获取SDCard的目录路径功能
 	 * 
