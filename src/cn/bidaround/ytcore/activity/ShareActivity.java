@@ -20,6 +20,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import cn.bidaround.point.ChannelId;
+import cn.bidaround.point.YtLog;
 import cn.bidaround.ytcore.ErrorInfo;
 import cn.bidaround.ytcore.YtShareListener;
 import cn.bidaround.ytcore.data.KeyInfo;
@@ -333,6 +334,7 @@ public class ShareActivity extends YtBaseShareActivity implements IWeiboHandler.
 					shareData.setText(text);
 					//Util.showProgressDialog(ShareActivity.this, "分享中...", true);
 					Util.showProgressDialog(ShareActivity.this,res.getString(res.getIdentifier("yt_shareing", "string", packName)), true);
+					YtLog.d("shareActivity", "SinaNoKeyShare.shareToSina");
 					SinaNoKeyShare.shareToSina(ShareActivity.this, shareData, listener, realUrl, shortUrl);
 				}
 			}

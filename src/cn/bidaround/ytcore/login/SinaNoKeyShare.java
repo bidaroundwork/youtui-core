@@ -138,7 +138,7 @@ public class SinaNoKeyShare {
 	 * @param shareData
 	 */
 	public static void shareToSina(final Activity act, final ShareData shareData, final YtShareListener listener, final String realUrl, final String shortUrl) {
-		if (shareData.getShareType() == ShareData.SHARETYPE_IMAGE || shareData.getShareType() == ShareData.SHARETYPE_IMAGE) {
+		if (shareData.getShareType() == ShareData.SHARETYPE_IMAGE || shareData.getShareType() == ShareData.SHARETYPE_IMAGEANDTEXT) {
 			WeiboParameters params = new WeiboParameters();
 			params.put("access_token", AccessTokenKeeper.readAccessToken(act).getToken());
 			// 添加新浪微博分享文字文字
@@ -168,6 +168,7 @@ public class SinaNoKeyShare {
 				Bitmap bitmap = BitmapFactory.decodeFile(shareData.getImagePath());
 				params.put("pic", bitmap);
 			}
+			YtLog.d("SinaNoKeyShare", "statuses/upload shareToSina");
 			// 发送http请求进行分享
 			AsyncWeiboRunner.requestAsync("https://upload.api.weibo.com/2/statuses/upload.json", params, "POST", new RequestListener() {
 				@Override
@@ -193,6 +194,8 @@ public class SinaNoKeyShare {
 					}
 					act.finish();
 				}
+				
+				
 			});
 		} else if (shareData.getShareType() == ShareData.SHARETYPE_TEXT) {
 			WeiboParameters params = new WeiboParameters();

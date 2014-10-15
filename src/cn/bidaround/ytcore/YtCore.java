@@ -179,6 +179,8 @@ public class YtCore {
 		shareData.setShareType(oriData.getShareType());
 		shareData.setMusicUrl(oriData.getMusicUrl());
 		shareData.setVideoUrl(oriData.getVideoUrl());
+		YtLog.d("ytcore ImageUrl", shareData.getImageUrl());
+		YtLog.d("ytcore ImagePath", shareData.getImagePath());
 
 		String shortUrl = null;
 		final String realUrl = shareData.getTarget_url();
@@ -316,6 +318,7 @@ public class YtCore {
 				}
 			} else {
 				if (AppHelper.isSinaWeiboExisted(act) && !"true".equals(KeyInfo.getKeyValue(act, YtPlatform.PLATFORM_SINAWEIBO, "IsWebShare"))) {
+					YtLog.d("ytcore", "sso");
 					// 调用新浪客户端进行分享
 					if (AccessTokenKeeper.readAccessToken(appContext).isSessionValid()) {
 						// 有授权的话直接分享
@@ -360,8 +363,10 @@ public class YtCore {
 						sinaLogin.sinaAuth(act, listener3);
 					}
 				} else {
+					YtLog.d("ytcore", "not sso");
 					// 调用web方式进行分享
 					if (AccessTokenKeeper.readAccessToken(appContext).isSessionValid()) {
+						YtLog.d("ytcore", "not sso isSessionValid");
 						// 有授权时
 						Intent it = new Intent(act, ShareActivity.class);
 						ShareActivity.listener = listener;
@@ -372,6 +377,7 @@ public class YtCore {
 						ShareActivity.shareData = shareData;
 						act.startActivity(it);
 					} else {
+						YtLog.d("ytcore", "not sso !isSessionValid");
 						new SinaShare(act, shareData).sinaWebAuth(realUrl, shortUrl);
 						ShareActivity.shareData = shareData;
 						ShareActivity.listener = listener;
