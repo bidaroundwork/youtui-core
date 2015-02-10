@@ -1,18 +1,18 @@
 package cn.bidaround.ytcore.util;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
+import android.content.res.Resources.NotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import cn.bidaround.point.YtLog;
-import cn.bidaround.ytcore.YtCore;
 
 /**
  * 下载图片
@@ -20,7 +20,7 @@ import cn.bidaround.ytcore.YtCore;
  * @since 14/6/19
  */
 public class DownloadImage {
-	private static final String TAG = "at class DownloadImage:";
+	protected static int bufferSize = 32 * 1024;
 
 	/**
 	 * 加载系统本地图片
@@ -42,46 +42,32 @@ public class DownloadImage {
 
 	/**
 	 * 下载文件功能
-	 * 
-	 * @throws IOException
+	 * @throws Exception 
+	 * @throws NotFoundException 
 	 */
-	public static void down_file(String url, String path, String filename) throws IOException {
+	public static void down_file(String url, String path, String filename) throws NotFoundException, Exception {
 		//YtLog.i(TAG, "start down shared image");
 		URL myURL = new URL(url);
 		URLConnection conn = myURL.openConnection();
 		conn.connect();
+		conn.setConnectTimeout(3000);
 		InputStream is = conn.getInputStream();
-		int fileSize = conn.getContentLength();// 根据响应获取文件大小
-		if (fileSize <= 0) {
-			//YtLog.e(TAG, "无法获知文件大小");
-			//throw new RuntimeException("无法获知文件大小 ");
-			throw new RuntimeException(YtCore.res.getString(YtCore.res.getIdentifier("yt_unknownfilesize", "string", YtCore.packName)));
-		}
-
 		if (is == null) {
-			YtLog.e(TAG, "stream is null");
-			throw new RuntimeException("stream is null");
+			throw new Exception("stream is null");
 		}
 		FileUtils util = new FileUtils();
 		util.creatSDDir(path);
 		File file = util.creatSDFile(path + filename);// 保存的文件名
-		//YtLog.e(TAG, "creatSDFile");
-		@SuppressWarnings("resource")
-		FileOutputStream fos = new FileOutputStream(file);
 		
-		//YtLog.e(TAG, "FileOutputStream");
-		// 把数据存入路径+文件名
-		byte buf[] = new byte[1024];
-		do {
-			// 循环读取
-			int numread = is.read(buf);
-			if (numread == -1) {
-				break;
-			}
-			fos.write(buf, 0, numread);
-		} while (true);
+		OutputStream os = new BufferedOutputStream(new FileOutputStream(file), bufferSize);
+		
+		byte bytes[] = new byte[bufferSize];
+		int count;
+		while ((count = is.read(bytes, 0, bufferSize)) != -1) {
+			os.write(bytes, 0, count);
+		}
+		os.close();
 		is.close();
-		//YtLog.i(TAG, "down shared image complete");
 	}
 
 }

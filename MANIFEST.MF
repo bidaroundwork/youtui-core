@@ -1,3 +1,0 @@
-Manifest-Version: 1.0 
-Class-Path: libs\Android_SDK.jar libs\commons-httpclient-3.0.1.jar libs\libammsdk.jar libs\mta-sdk-1.0.0.jar libs\open_sdk.jar libs\RennSDK-Android.jar libs\weibosdkcore.jar   
-

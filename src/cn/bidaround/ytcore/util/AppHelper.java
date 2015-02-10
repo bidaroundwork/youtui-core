@@ -2,12 +2,12 @@ package cn.bidaround.ytcore.util;
 
 import java.util.List;
 
-import cn.bidaround.point.YoutuiConstants;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import cn.bidaround.point.YtConstants;
 
 
 /**
@@ -34,7 +34,7 @@ public class AppHelper {
 	 * 检查新浪微博是否已经安装
 	 */
 	public static boolean isSinaWeiboExisted(Context context) {
-		if (checkApp(context, YoutuiConstants.PACKAGE_NAME_SINA_WEIBO)) {
+		if (checkApp(context, YtConstants.PACKAGE_NAME_SINA_WEIBO)) {
 			return true;
 		} else {
 			return false;
@@ -45,7 +45,7 @@ public class AppHelper {
 	 * 检查腾讯QQ是否已经安装
 	 */
 	public static boolean isTencentQQExisted(Context context) {
-		if (checkApp(context, YoutuiConstants.PACKAGE_NAME_TENCENT_QQ)) {
+		if (checkApp(context, YtConstants.PACKAGE_NAME_TENCENT_QQ)) {
 			return true;
 		} else {
 			return false;
@@ -56,7 +56,7 @@ public class AppHelper {
 	 * 检查人人客户端是否已经安装
 	 */
 	public static boolean isRenrenExisted(Context context) {
-		if (checkApp(context, YoutuiConstants.PACKAGE_NAME_RENREN)) {
+		if (checkApp(context, YtConstants.PACKAGE_NAME_RENREN)) {
 			return true;
 		} else {
 			return false;
@@ -67,7 +67,29 @@ public class AppHelper {
 	 * 检查微信是否已经安装
 	 */
 	public static boolean isWeixinExisted(Context context) {
-		if (checkApp(context, YoutuiConstants.PACKAGE_NAME_WEIXIN)) {
+		if (checkApp(context, YtConstants.PACKAGE_NAME_WEIXIN)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	/**
+	 * 检查易信是否已经安装
+	 */
+	public static boolean isYixinExisted(Context context) {
+		if (checkApp(context, "im.yixin")) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	/**
+	 * 检查开心网是否已经安装
+	 */
+	public static boolean isKaixinExisted(Context context) {
+		if (checkApp(context, "com.kaixin001.activity")) {
 			return true;
 		} else {
 			return false;

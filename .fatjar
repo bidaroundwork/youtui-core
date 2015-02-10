@@ -1,14 +1,14 @@
 #Fat Jar Configuration File
-#Wed Sep 03 14:39:14 CST 2014
+#Mon Feb 02 16:08:19 CST 2015
 onejar.license.required=true
 manifest.classpath=
 manifest.removesigners=true
 onejar.checkbox=false
-jarname=YtCore_fat.jar
+jarname=YoutuiSDK_Template.jar
 manifest.mergeall=true
 manifest.mainclass=
 manifest.file=<createnew>
 jarname.isextern=false
 onejar.expand=
-excludes=<jar|commons-httpclient-3.1.jar>;<jar|Android_SDK.jar>;<jar|RennSDK-Android.jar>;<jar|youitui-point_fat.jar>;<jar|mta-sdk-1.0.0.jar>;<jar|open_sdk.jar>;<jar|libammsdk.jar>;<jar|weibosdkcore.jar>
+excludes=<po|youtui_core>~cn/~bidaround/~ytcore/;<jar|YoutuiSDK_QQ.jar>;<jar|YoutuiSDK_Yixin.jar>;<jar|YouTuiSDK_SinaWeiBo.jar>;<jar|YoutuiSDK_TencentWB.jar>;<jar|YoutuiSDK_Wechat.jar>;<jar|YoutuiSDK_HttpClient.jar>;<jar|YoutuiSDK_QQMta.jar>;<jar|android-support-v4.jar>;<jar|YoutuiSDK_Renn.jar>;<jar|youtui_point.jar>
 includes=
