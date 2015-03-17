@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.text.TextUtils;
+import android.util.Log;
 import android.widget.Toast;
 import cn.bidaround.ytcore.YtCore;
 import cn.bidaround.ytcore.YtShareListener;
@@ -91,6 +93,8 @@ public class TencentWbShare extends BaseShare {
 	private void doShare() {
 		WeiboAPI weibo = new WeiboAPI(SharePersistent.getInstance().getAccount(activity));
 		if (shareData.getShareType() == ShareData.SHARETYPE_IMAGEANDTEXT || shareData.getShareType() == ShareData.SHARETYPE_IMAGE) {
+			
+			
 			Bitmap bm = BitmapFactory.decodeFile(shareData.getImagePath());
 			String text = shareData.getText();
 			// 如果腾讯微博分享文字过长，截取前面内容和跳转url
@@ -99,13 +103,14 @@ public class TencentWbShare extends BaseShare {
 					text = text.substring(0, 109);
 					text += "...";
 				}
-				if (shareData.getTargetUrl() != null && !"".equals(shareData.getTargetUrl()) && !"null".equals(shareData.getTargetUrl())) {
+				// 包换？符号就会出现错误
+				if (shareData.getTargetUrl() != null && !"".equals(shareData.getTargetUrl()) && !"null".equals(shareData.getTargetUrl()) && !shareData.getTargetUrl().contains("?")) {
 					text += shareData.getTargetUrl();
 				}
+				
 			} else if (shareData.getShareType() == ShareData.SHARETYPE_IMAGE) {
 				text = "";
 			}
-
 			if (bm == null) {
 				Toast.makeText(activity, activity.getResources().getString(activity.getResources()
 						.getIdentifier("yt_nopic", "string", activity.getPackageName())), Toast.LENGTH_SHORT).show();
@@ -120,7 +125,8 @@ public class TencentWbShare extends BaseShare {
 				text = text.substring(0, 109);
 				text += "...";
 			}
-			if (shareData.getTargetUrl() != null && !"".equals(shareData.getTargetUrl()) && !"null".equals(shareData.getTargetUrl())) {
+			// 包换？符号就会出现错误
+			if (shareData.getTargetUrl() != null && !"".equals(shareData.getTargetUrl()) && !"null".equals(shareData.getTargetUrl()) && !shareData.getTargetUrl().contains("?")) {
 				text += shareData.getTargetUrl();
 			}
 			weibo.addWeibo(activity, text, "json", 0d, 0d, -1, 0, mCallBack, null, 4);

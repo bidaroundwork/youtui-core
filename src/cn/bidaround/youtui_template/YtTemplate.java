@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.widget.Toast;
 import cn.bidaround.point.YtPoint;
 import cn.bidaround.ytcore.YtCore;

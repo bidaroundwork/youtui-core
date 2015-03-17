@@ -185,9 +185,11 @@ public class HttpUtils {
 						post.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
 						HttpResponse response = client.execute(post);
 						try {
-							YtLog.w("YouTui", EntityUtils.toString(response.getEntity()));
+							JSONObject obj = new JSONObject(EntityUtils.toString(response.getEntity()));
+							if(!obj.has("success") || !obj.getBoolean("success"))
+								YtLog.e("YouTui", "短链接设置失败");
 						} catch (Exception e) {
-
+							
 						}
 					} catch (Exception e) {
 						e.printStackTrace();

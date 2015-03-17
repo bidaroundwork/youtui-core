@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.text.TextUtils;
-import android.util.Log;
 import android.widget.Toast;
 import cn.bidaround.point.YtPoint;
 import cn.bidaround.ytcore.activity.SinaShareActivity;
@@ -132,15 +131,8 @@ public class YtCore {
 			shortUrl = CMyEncrypt.shortUrl(shareData.getTargetUrl());
 			// 如果不是截屏，复制链接等平台，发送真实url和短链接
 			if (YtPlatform.PLATFORMTYPE_UTIL != YtPlatform.getPlatformType(platform)){
-				if(TextUtils.isEmpty(shareData.getPublishTime()) || TextUtils.isEmpty(shareData.getTitle()) || TextUtils.isEmpty(shareData.getDescription())
-						|| TextUtils.isEmpty(shareData.getTargetId()) || TextUtils.isEmpty(shareData.getImageUrl())){
-					Log.e("YouTui", "Sharing url must call ShareData.setPublishTime(String) 、 ShareData.setTitle(String) 、" +
-							" ShareData.setDescription(String)、 ShareData.setTargetId(String)、 ShareData.setImageUrl(String)");
-					return;
-				}
-				else
-					HttpUtils.sendUrl(platform.getChannleId(), shareData.getTargetUrl(), !shareData.isAppShare(), shortUrl, cardNum, 
-							imei, shareData.getPublishTime(), shareData.getTitle(), shareData.getDescription(), shareData.getTargetId(), shareData.getImageUrl());
+				HttpUtils.sendUrl(platform.getChannleId(), shareData.getTargetUrl(), !shareData.isAppShare(), shortUrl, cardNum, 
+						imei, shareData.getPublishTime(), shareData.getTitle(), shareData.getDescription(), shareData.getTargetId(), shareData.getImageUrl());
 			}
 		}
 		
